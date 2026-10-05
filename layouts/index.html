@@ -1,0 +1,216 @@
+{{ define "main" }}
+<div class="space-y-12">
+
+  <!-- ================= HERO SECTION ================= -->
+  <section class="py-8 border-b border-gray-100 dark:border-gray-800">
+    <!-- Changed container from max-w-3xl to max-w-4xl and added mx-auto for centering -->
+    <div class="max-w-4xl mx-auto">
+      <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl mb-6">
+        Welcome to My Blog Space: 
+      </h1>
+      <p class="text-3xl text-gray-800 dark:text-gray-300 leading-relaxed py-6">
+        Where I use DevOps to build stuff that works...*
+      </p>
+      <p class="text-xl text-gray-600 dark:text-gray-300 leading-relaxed py-2">
+        Here, I will be writing about lots of different topics, including web development, software engineering, and document my learning journeys through structured series and handy tips. Explore my recent thoughts below!
+      </p>
+      <p class="text-xs text-gray-400 dark:text-gray-300 leading-relaxed">
+        * for any reasonable definition of "works" - I don't guarantee that it will work for you, but it works for me. If you find something that doesn't work, please let me know!
+      </p>
+    </div>
+  </section>
+
+
+  <!-- ================= POSTS SECTION ================= -->
+  <section>
+    <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">My Recent Posts</h2>
+    <div class="space-y-3 mb-2">
+      {{ range (first 5 (where .Site.RegularPages "Section" "in" (slice "posts" "series"))) }}
+      <!-- Inline styles added here to force white backgrounds and rounded corners -->
+      <div class="p-6 transition-shadow duration-200" style="background-color: #ffffff; border: 1px solid #d0d2d6; border-radius: 0.25rem; ">
+        {{/*  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);  */}}
+          <div class="flex items-center justify-between mb-2">
+          <h3 class="text-2xl font-semibold text-gray-700">
+            {{ .Title }}
+          </h3>
+          <div class="flex items-center text-sm" style="display: flex; align-items: center; color: #6b7280;">
+            
+            
+            <!-- Calendar Icon -->
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 1rem; height: 1rem; margin-right: 0.25rem;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 002-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            {{ .Date.Format "Jan" }} {{ .Date.Day | humanize }} {{ .Date.Format "2006" }}
+          </div>
+        </div>
+        <p class="text-gray-600 mb-4">
+          {{ .Summary | truncate 160 }}
+        </p>
+        
+        {{/*  <!-- Series Badge: Warm Autumnal Terracotta -->
+        <!-- Dedicated Line Block: Safely surfaces long series text labels -->
+        {{ if .Params.series }}
+        <div style="margin-bottom: 0.75rem; display: block;">
+          <span style="display: inline-block; font-size: 0.75rem; font-weight: 400; padding: 0.25rem 0.5rem; border-radius: 0.15rem; background-color: #f7f5f2; color: #78350f; border: 1px solid #e7e1d7; max-w: 100%; line-height: 1.4;">
+            This post is part of the series: 
+            
+            {{ $seriesName := .Params.series }}
+            {{ with $.Site.GetPage (printf "series/%s" ($seriesName | urlize)) }}
+              <a href="{{ .Permalink }}" style="color: #78350f; text-decoration: underline; font-weight: 500; margin-left: 0.25rem; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                {{ $seriesName }}
+              </a>
+            {{ else }}
+              <span style="margin-left: 0.25rem;">{{ $seriesName }}</span>
+            {{ end }}
+          </span>
+        </div>
+        {{ end }}  */}}
+
+        <!-- FLEX CONTAINER FOR ALIGNING ITEMS TO THE RIGHT -->
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: 1.25rem;">
+          
+          <!-- Metadata Labels Left Side Container -->
+          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
+            
+            <!-- Dynamic Categories: Emerald Theme Accent -->
+            {{ with .Params.categories }}
+              {{ range . }}
+              <span class="text-xs" style="display: inline-flex; align-items: center; font-size: 0.75rem; font-weight: 500; padding: 0.25rem 0.625rem; border-radius: 0.25rem; background-color: #e6f4ea; color: #166534; border: 1px solid #a3bdab;">
+                <!-- Category Grid SVG Icon -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 0.85rem; height: 0.85rem; margin-right: 0.375rem;">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                {{ . }}
+              </span>
+              {{ end }}
+            {{ end }}
+
+            <!-- Dynamic Tags: Soft Neutral Slate -->
+            {{ with .Params.tags }}
+              {{ range . }}
+              <span class="text-xs" style="display: inline-flex; align-items: center; font-size: 0.75rem; font-weight: 500; padding: 0.25rem 0.625rem; border-radius: 0.25rem; background-color: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb;">
+                <!-- Price Tag SVG Icon -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 0.85rem; height: 0.85rem; margin-right: 0.375rem;">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                  <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                </svg>
+                {{ . }}
+              </span>
+              {{ end }}
+            {{ end }}
+
+          </div>
+
+          <!-- Aligned Read More Solid Green Button -->
+          <a href="{{ .Permalink }}" style="display: inline-flex; align-items: center; font-size: 0.75rem; font-weight: 500; padding: 0.375rem 0.75rem; border-radius: 0.25rem; background-color: #16a34a; color: #ffffff; text-decoration: none; white-space: nowrap;">
+            READ POST
+          </a>
+        </div>
+
+      </div>
+      {{ else }}
+      <p class="text-gray-500 italic">No posts found.</p>
+      {{ end }}
+    </div>
+
+    {{ if gt (len (where .Site.RegularPages "Section" "in" (slice "posts" "series"))) 0 }}
+      {{ with .Site.GetPage "section" "posts" }}
+      <!-- Wrapper to force alignment to the right edge -->
+      <div style="text-align: right; margin-top: 1.5rem;">
+        <a href="{{ .Permalink }}" style="display: inline-flex; align-items: center; font-size: 0.8rem; font-weight: 400; text-transform: uppercase; padding: 0.5rem 1rem; border-radius: 0.25rem; background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; text-decoration: none; transition: all 0.2s;"
+          onmouseover="this.style.backgroundColor='#fde68a'; this.style.borderColor='#fcd34d';" 
+          onmouseout="this.style.backgroundColor='#fef3c7'; this.style.borderColor='#fde68a';">
+          View all posts &rarr;
+        </a>
+      </div>
+      {{ end }}
+    {{ end }}
+
+  </section>
+
+  <!-- ================= SERIES SECTION ================= -->
+  <section>
+    <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">My Series</h2>
+    <div class="space-y-4 mb-6">
+      {{ range $idx, $taxonomy := .Site.Taxonomies.series.ByCount }}
+      <div class="p-6 transition-shadow duration-200" style="background-color: #ffffff; border: 1px solid #d0d2d6; border-radius: 0.25rem;">
+        
+        <!-- Top Row: Series Title and Interactive Toggle Pill Button -->
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <a href="{{ .Page.Permalink }}" class="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors" style="text-decoration: none;">
+            {{ .Page.Title }}
+          </a>
+          
+          <!-- Pill Button containing post count and a dynamic chevron icon -->
+          <button onclick="toggleSeriesList('series-list-{{ $idx }}', 'chevron-{{ $idx }}')" 
+                  style="cursor: pointer; display: inline-flex; align-items: center; font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 2px; background-color: #f7f5f2; color: #78350f; border: 1px solid #e7e1d7; transition: all 0.2s;"
+                  onmouseover="this.style.backgroundColor='#eedcd3'; this.style.borderColor='#d9c9bf';" 
+                  onmouseout="this.style.backgroundColor='#f7f5f2'; this.style.borderColor='#e7e1d7';">
+            <span style="margin-right: 0.375rem;">
+              Contains {{ .Count }} {{ cond (eq .Count 1) "post" "posts" }}
+            </span>
+            <!-- Chevron Down SVG Icon -->
+            <svg id="chevron-{{ $idx }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 0.75rem; height: 0.75rem; transform: rotate(0deg); transition: transform 0.2s ease-in-out;">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Hidden List Container -->
+        <div id="series-list-{{ $idx }}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #e5e7eb;">
+          <ul style="list-style-type: none; padding-left: 0; margin: 0; space-y: 0.5rem;">
+            {{ range .Pages.ByDate }}
+            <li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <a href="{{ .Permalink }}" style="color: #2563eb; font-size: 0.95rem; font-weight: 500; text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+                {{ .Title }}
+              </a>
+              <span style="font-size: 0.85rem; color: #9ca3af;">
+            {{ .Date.Format "Jan" }} {{ .Date.Day | humanize }} {{ .Date.Format "2006" }}
+              </span>
+            </li>
+            {{ end }}
+          </ul>
+        </div>
+
+      </div>
+      {{ else }}
+      <p class="text-gray-500 italic">No series found.</p>
+      {{ end }}
+    </div>
+
+    <!-- Right-aligned 'View all series' container button -->
+    {{ if gt (len .Site.Taxonomies.series) 0 }}
+      {{ with .Site.GetPage "taxonomy" "series" }}
+      <div style="text-align: right; margin-top: 1.5rem;">
+        <a href="{{ .Permalink }}" style="display: inline-flex; align-items: center; font-size: 0.8rem; font-weight: 400; text-transform: uppercase; padding: 0.5rem 1rem; border-radius: 0.25rem; background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; text-decoration: none; transition: all 0.2s;"
+          onmouseover="this.style.backgroundColor='#fde68a'; this.style.borderColor='#fcd34d';" 
+          onmouseout="this.style.backgroundColor='#fef3c7'; this.style.borderColor='#fde68a';">
+          View all series &rarr;
+        </a>
+      </div>
+      {{ end }}  
+    {{ end }}
+  </section>
+
+  <!-- ================= TOGGLE SCRIPT ================= -->
+  <script>
+    function toggleSeriesList(listId, chevronId) {
+      var listContainer = document.getElementById(listId);
+      var chevronIcon = document.getElementById(chevronId);
+      
+      if (listContainer.style.display === "none") {
+        listContainer.style.display = "block";
+        // Rotates chevron 180 degrees to point upwards when open
+        chevronIcon.style.transform = "rotate(180deg)";
+      } else {
+        listContainer.style.display = "none";
+        // Resets chevron to 0 degrees to point downwards when closed
+        chevronIcon.style.transform = "rotate(0deg)";
+      }
+    }
+  </script>
+
+
+</div>
+{{ end }}

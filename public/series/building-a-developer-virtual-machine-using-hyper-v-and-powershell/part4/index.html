@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en-GB" dir="ltr" class="h-full">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Installing some applications | kelrys.com</title>
+<link rel="canonical" href="http://localhost:1313/series/building-a-developer-virtual-machine-using-hyper-v-and-powershell/part4/">
+<meta name="description" content="This is the fourth post">
+
+<meta property="og:site_name" content="kelrys.com">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Installing some applications">
+<meta property="og:description" content="This is the fourth post">
+<meta property="og:url" content="http://localhost:1313/series/building-a-developer-virtual-machine-using-hyper-v-and-powershell/part4/">
+<meta property="og:locale" content="en_US">
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Installing some applications">
+<meta name="twitter:description" content="This is the fourth post">
+<meta property="article:published_time" content="2025-06-18T10:00:00&#43;01:00">
+<meta property="article:modified_time" content="2025-06-18T10:00:00&#43;01:00">
+<meta property="article:tag" content="powershell">
+<meta property="article:tag" content="virtual machine">
+<meta property="article:tag" content="hyper-v">
+
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/index.xml" title="kelrys.com">
+
+
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b1220">
+<script>
+  (function() {
+    try {
+      var t = localStorage.getItem('theme');
+      var dark = t ? (t === 'dark') : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (dark) document.documentElement.classList.add('dark');
+    } catch (_) {}
+  })();
+</script>
+<style>
+   
+  html.dark, html.dark body { background-color: #0b1220; }
+  html { color-scheme: light; }
+  html.dark { color-scheme: dark; }
+</style>
+
+
+<link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+<link rel="shortcut icon" href="/favicon/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
+<link rel="manifest" href="/favicon/site.webmanifest" />
+
+
+
+
+
+
+
+
+  
+  
+    
+    
+      
+        <link rel="stylesheet" href="/css/main.css?v=1791215034">
+      
+    
+  
+
+
+
+<link rel="preload" href="/fonts/source-serif-4-400.woff2" as="font" type="font/woff2" crossorigin>
+
+  
+  
+<link rel="stylesheet" href="/css/fonts/noto-serif-sc.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/css/fonts/noto-serif-sc.css"></noscript>
+
+
+<link href="https://cdn.boxicons.com/3.0.8/fonts/basic/boxicons.min.css" rel="stylesheet">
+
+<link href="https://cdn.boxicons.com/3.0.8/fonts/filled/boxicons-filled.min.css" rel="stylesheet">
+
+<link href="https://cdn.boxicons.com/3.0.8/fonts/brands/boxicons-brands.min.css" rel="stylesheet">
+
+  
+<script defer src="/js/main.js"></script>
+
+
+<link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+</head>
+<body class="flex flex-col bg-canvas font-bilingual">
+  <a href="#main-content" class="skip-link">Skip to content</a>
+  <header class="fixed top-0 left-0 z-30 w-full bg-surface shadow-sm">
+    <div class="w-full max-w-4xl mx-auto px-6">
+      <div class="flex items-center justify-between py-3">
+  <div class="text-lg sm:text-xl font-bold flex-shrink-0 max-w-[40%] sm:max-w-md truncate">
+    <a href="/" class="no-underline transition-colors text-fg-strong hover:text-accent">
+      kelrys.com
+    </a>
+  </div>
+  <div class="flex items-center gap-2">
+    
+  <nav id="site-nav" class="site-nav flex justify-end w-full whitespace-nowrap">
+    <ul class="list-none flex flex-row items-center space-x-2 sm:space-x-4 md:space-x-6 py-2">
+    <li class="text-fg-muted hover:text-fg-strong text-base sm:text-lg">
+      <a
+        class="px-2 py-1 sm:px-3 sm:py-2 rounded hover:bg-hover transition-colors" href="/">Home</a>
+    </li>
+    <li class="text-fg-muted hover:text-fg-strong text-base sm:text-lg">
+      <a
+        class="px-2 py-1 sm:px-3 sm:py-2 rounded hover:bg-hover transition-colors" href="/posts/">Posts</a>
+    </li>
+    <li class="text-fg-muted hover:text-fg-strong text-base sm:text-lg">
+      <a
+        class="px-2 py-1 sm:px-3 sm:py-2 rounded hover:bg-hover transition-colors" href="/series/">Series</a>
+    </li>
+    <li class="text-fg-muted hover:text-fg-strong text-base sm:text-lg">
+      <a
+        class="px-2 py-1 sm:px-3 sm:py-2 rounded hover:bg-hover transition-colors" href="/tags/">Tags</a>
+    </li>
+    <li class="text-fg-muted hover:text-fg-strong text-base sm:text-lg">
+      <a
+        class="px-2 py-1 sm:px-3 sm:py-2 rounded hover:bg-hover transition-colors" href="/about/">About</a>
+    </li>
+    </ul>
+  </nav>
+
+    <a href="/search/" class="search-link inline-flex h-8 w-8 items-center justify-center rounded-md text-fg-2 hover:bg-hover transition-colors" aria-label="Search" title="Search">
+      <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" /></svg>
+    </a>
+    <button id="menu-toggle" type="button" class="menu-toggle sm:hidden inline-flex h-8 w-8 items-center justify-center rounded-md text-fg-2 hover:bg-hover transition-colors" aria-label="Menu" aria-expanded="false" aria-controls="site-nav">
+      <svg class="menu-icon-open h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
+      <svg class="menu-icon-close h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+    </button>
+    <button id="theme-toggle" type="button" class="theme-toggle theme-toggle-btn ml-2 relative inline-flex h-7 w-7 items-center justify-center p-0 bg-transparent border-0 text-fg-2 focus:outline-none cursor-pointer" aria-label="Toggle dark mode" aria-pressed="false">
+      
+      <svg class="icon-sun h-full w-full" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M512 192c179.2 0 320 140.8 320 320s-140.8 320-320 320-320-140.8-320-320S332.8 192 512 192M512 128C300.8 128 128 300.8 128 512s172.8 384 384 384 384-172.8 384-384S723.2 128 512 128L512 128z" fill="currentColor"></path>
+        <path d="M544 416l236.8 0C774.4 403.2 768 384 761.6 371.2L544 371.2 544 416z" fill="currentColor"></path>
+        <path d="M544 608l0 44.8 217.6 0c6.4-12.8 12.8-32 19.2-44.8L544 608z" fill="currentColor"></path>
+        <path d="M544 723.2 544 768 640 768c25.6-12.8 44.8-25.6 64-44.8L544 723.2z" fill="currentColor"></path>
+        <path d="M800 492.8l-256 0 0 44.8 256 0c0-6.4 0-12.8 0-25.6S800 499.2 800 492.8z" fill="currentColor"></path>
+        <path d="M544 300.8 704 300.8c-19.2-19.2-38.4-32-64-44.8L544 256 544 300.8z" fill="currentColor"></path>
+      </svg>
+      
+      <svg class="icon-moon h-full w-full" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M512 832c-179.2 0-320-140.8-320-320s140.8-320 320-320 320 140.8 320 320S691.2 832 512 832M512 896c211.2 0 384-172.8 384-384s-172.8-384-384-384S128 300.8 128 512 300.8 896 512 896L512 896zM800 512c0-160-128-288-288-288l0 576C672 800 800 672 800 512zM480 608 243.2 608C249.6 620.8 256 640 262.4 652.8l217.6 0L480 608zM480 416 480 371.2 262.4 371.2C256 384 249.6 403.2 243.2 416L480 416zM480 300.8 480 256 384 256C358.4 268.8 339.2 281.6 320 300.8L480 300.8zM224 537.6l256 0L480 492.8l-256 0c0 6.4 0 12.8 0 19.2S224 524.8 224 537.6zM480 723.2 320 723.2c19.2 19.2 38.4 32 64 44.8l96 0L480 723.2z" fill="currentColor"></path>
+      </svg>
+    </button>
+  </div>
+</div>
+
+    </div>
+  </header>
+
+  <div class="flex-1 flex flex-col min-h-screen pt-24">
+    <main id="main-content" class="site-main flex-1 w-full max-w-4xl mx-auto px-8 sm:px-10 overflow-x-auto sm:overflow-visible">
+      
+  
+  
+  
+  
+  
+  
+  
+
+  <div class="article-layout has-toc">
+  <div class="article-main min-w-0">
+  
+  <article class="max-w-4xl mx-auto bg-surface overflow-hidden" style="border: 1px solid #babcbf; border-radius: 0.25rem; box-shadow: none;">
+    
+    
+    <header class="relative" style="border-bottom: none;">
+      <div class="article-inner py-6">
+     
+      <h1 class="text-3xl sm:text-4xl font-bold text-fg-strong mb-1 relative" data-pagefind-meta="title">Installing some applications</h1>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+
+        <div class="flex flex-wrap items-center text-sm text-fg-faint gap-4 relative">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 1rem; height: 1rem; margin-right: 0.25rem;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 002-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+          Jun 18th 2025
+          
+          
+          <div style="display: flex; align-items: center;">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 1rem; height: 1rem; margin-right: 0.25rem;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+          By Andrew Davidson
+          </div>
+          
+            
+        <span class="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-fg-dim" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          4 min read
+        </span>
+
+        <div
+          class="sm:ml-auto"
+          data-share-widget
+          data-share-url="http://localhost:1313/series/building-a-developer-virtual-machine-using-hyper-v-and-powershell/part4/"
+          data-share-title="Installing some applications"
+          data-share-text="This is the fourth post"
+          data-share-label-default="Share"
+          data-share-label-success="Copied"
+          data-share-copy-summary-success="Share text copied."
+          data-share-copy-failed="Copy failed."
+          >
+          <button
+            type="button"
+            class="share-trigger inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm transition-colors"
+            data-share-copy-summary
+            >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.59 13.51l6.83 3.98M15.41 6.51L8.59 10.49" />
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+            </svg>
+            <span data-share-label>Share</span>
+          </button>
+        </div>
+      </div>
+      </div>
+    </header>
+    
+    
+    <nav class="series-nav article-inner pt-2 pb-2" aria-label="Series">
+      <div class="series-nav-box rounded-md border border-line bg-canvas px-4 py-3 text-sm">
+        <div class="text-fg-muted">
+          Part of the series
+          <a href="/series/building-a-developer-virtual-machine-using-hyper-v-and-powershell/" class="font-medium text-accent-strong hover:text-accent-strong no-underline">Building a Developer Virtual Machine Using Hyper-v and PowerShell</a>
+          <span class="text-fg-dim">· 5 posts</span>
+        </div>
+        <ol class="series-nav-list mt-2 space-y-1">
+          <li class="flex items-baseline gap-2 text-fg-muted">
+            <span class="series-index w-5 shrink-0 text-right text-xs text-fg-dim">1</span>
+            <a href="/series/building-a-developer-virtual-machine-using-hyper-v-and-powershell/part1/" class="hover:text-accent-strong no-underline">Introduction</a>
+          </li>
+          <li class="flex items-baseline gap-2 text-fg-muted">
+            <span class="series-index w-5 shrink-0 text-right text-xs text-fg-dim">2</span>
+            <a href="/series/building-a-developer-virtual-machine-using-hyper-v-and-powershell/part2/" class="hover:text-accent-strong no-underline">What are we going to do?</a>
+          </li>
+          <li class="flex items-baseline gap-2 text-fg-muted">
+            <span class="series-index w-5 shrink-0 text-right text-xs text-fg-dim">3</span>
+            <a href="/series/building-a-developer-virtual-machine-using-hyper-v-and-powershell/part3/" class="hover:text-accent-strong no-underline">Configuring the OS</a>
+          </li>
+          <li class="flex items-baseline gap-2 series-current font-medium text-fg-strong">
+            <span class="series-index w-5 shrink-0 text-right text-xs text-fg-dim">4</span>
+            <span aria-current="page" style="font-weight: 600;">Installing some applications</span>
+          </li>
+          <li class="flex items-baseline gap-2 text-fg-muted">
+            <span class="series-index w-5 shrink-0 text-right text-xs text-fg-dim">5</span>
+            <a href="/series/building-a-developer-virtual-machine-using-hyper-v-and-powershell/part5/" class="hover:text-accent-strong no-underline">Summary</a>
+          </li>
+        </ol>
+      </div>
+    </nav>
+
+
+    
+      
+    <details class="toc-inline article-inner pt-2 toc" open>
+      <summary class="toc-summary w-full flex items-center justify-between text-sm text-fg-2 bg-canvas hover:bg-hover border border-line rounded-md px-4 py-2 transition-colors cursor-pointer select-none">
+        <span>Table of Contents</span>
+        <svg class="toc-icon-open h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+        <svg class="toc-icon-close h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M5 9a1 1 0 000 2h10a1 1 0 100-2H5z" clip-rule="evenodd" />
+        </svg>
+      </summary>
+      <div id="toc-content" class="mt-1 border border-line-soft rounded-md bg-surface p-4 text-sm leading-relaxed">
+        <div class="toc-nav prose prose-sm max-w-none">
+          <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#what-am-i-going-to-install">What am I going to install?</a></li>
+        <li><a href="#install-common-applications">Install common applications</a>
+          <ul>
+            <li><a href="#winget">WinGet</a></li>
+            <li><a href="#windows-terminal">Windows Terminal</a></li>
+            <li><a href="#powershell-7-latest">PowerShell 7 (latest)</a></li>
+            <li><a href="#vs-code--vs-code-insiders">VS Code &amp; VS Code Insiders</a></li>
+            <li><a href="#git">Git</a></li>
+            <li><a href="#gsudo">gsudo</a></li>
+            <li><a href="#nanazip">NanaZip</a></li>
+            <li><a href="#fork">Fork</a></li>
+            <li><a href="#winmerge">WinMerge</a></li>
+            <li><a href="#chrome">Chrome</a></li>
+            <li><a href="#firefox">Firefox</a></li>
+            <li><a href="#postman">Postman</a></li>
+          </ul>
+        </li>
+        <li><a href="#code-extensions">Code extensions</a>
+          <ul>
+            <li><a href="#other-code-editors">Other Code Editors</a></li>
+          </ul>
+        </li>
+        <li><a href="#install-applications-and-extensions-for-powershell-development">Install applications and extensions for PowerShell development</a>
+          <ul>
+            <li><a href="#vs-code-extensions">VS Code extensions</a></li>
+          </ul>
+        </li>
+        <li><a href="#install-applications-and-extensions-for-nodejs-development">Install applications and extensions for node.js development</a>
+          <ul>
+            <li><a href="#nodejs">node.js</a></li>
+            <li><a href="#vs-code-extensions-1">VS Code extensions</a></li>
+          </ul>
+        </li>
+        <li><a href="#install-applications-and-extensions-for-hugo-development">Install applications and extensions for hugo development</a>
+          <ul>
+            <li><a href="#hugo">hugo</a></li>
+            <li><a href="#vs-code-extensions-2">VS Code extensions</a></li>
+          </ul>
+        </li>
+        <li><a href="#install-applications-and-extensions-for-python-development">Install applications and extensions for python development</a>
+          <ul>
+            <li><a href="#vs-code-extensions-3">VS Code extensions</a></li>
+          </ul>
+        </li>
+        <li><a href="#install-applications-and-extensions-for-azure-development">Install applications and extensions for Azure development</a>
+          <ul>
+            <li><a href="#vs-code-extensions-4">VS Code extensions</a></li>
+          </ul>
+        </li>
+        <li><a href="#install-applications-and-extensions-for-aws-development">Install applications and extensions for AWS development</a>
+          <ul>
+            <li><a href="#vs-code-extensions-5">VS Code extensions</a></li>
+          </ul>
+        </li>
+        <li><a href="#install-applications-and-extensions-for-sql-development">Install applications and extensions for SQL development</a>
+          <ul>
+            <li><a href="#vs-code-extensions-6">VS Code extensions</a></li>
+          </ul>
+        </li>
+        <li><a href="#configure-terminal-settings">Configure Terminal settings</a></li>
+        <li><a href="#configure-visual-studio-settings">Configure Visual Studio settings</a></li>
+        <li><a href="#set-git-global-config-options">Set git global config options</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+        </div>
+      </div>
+    </details>
+    
+      <div class="article-inner article-prose py-1 prose prose-sm sm:prose lg:prose-lg max-w-none" data-pagefind-body>
+      
+<h2 id="what-am-i-going-to-install">What am I going to install?
+  <a class="heading-anchor" href="#what-am-i-going-to-install" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h2>
+<p>I will install the following applications:</p>
+<ul>
+<li>WinGet (if not installed already, newer OSes have it already installed)</li>
+<li>Windows Terminal (if not installed already, newer OSes have it already installed)</li>
+<li>PowerShell 7 (latest)</li>
+<li>VS Code</li>
+<li>VS Code Insiders</li>
+<li>Git</li>
+<li>Gsudo</li>
+<li>NanaZip</li>
+<li>Fork</li>
+<li>WinMerge</li>
+<li>Chrome</li>
+<li>Firefox</li>
+</ul>
+<p>And the following extensions in VS Code and VS Code Insiders:</p>
+<ul>
+<li>Editor Config</li>
+<li>Prettier</li>
+<li>Github Copilot</li>
+<li>PowerShell</li>
+<li>Spell Checker</li>
+<li>Markdown All-in-one</li>
+<li>GitHub VS Code theme (optional)</li>
+<li>Inline PowerShell (optional)</li>
+<li>VSCode Team Icons (optional)</li>
+</ul>
+<p>Later in the post I will install specific tools/programs for the different types of development I could be doing.</p>
+<ul>
+<li>node</li>
+<li>python</li>
+<li>hugo</li>
+<li>PowerShell</li>
+<li>Azure</li>
+<li>AWS</li>
+<li>SQL</li>
+</ul>
+<blockquote>
+<p>For your own developer environment install the ones that you are interested in/that you use. To find other packages have a look on <a href="https://winget.run/">winget.run</a> on how to find packages you can install with WinGet.</p>
+</blockquote>
+
+<h2 id="install-common-applications">Install common applications
+  <a class="heading-anchor" href="#install-common-applications" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h2>
+<p>I&rsquo;ll install the application common to all the development roles</p>
+
+<h3 id="winget">WinGet
+  <a class="heading-anchor" href="#winget" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+<div class="code-block-container not-prose" data-code-block>
+    <div class="code-block-header">
+      <span class="code-language-label">powershell</span>
+      <button type="button" class="copy-button" aria-label="Copy code" title="Copy code">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+        </svg>
+      </button>
+    </div>
+    <div class="code-block-body">
+      <div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="nb">Install-Script</span> <span class="nb">WinGet-install</span> <span class="n">-Force</span>
+</span></span><span class="line"><span class="cl"><span class="nb">WinGet-install</span></span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+  </div><blockquote>
+<p>If that doesn&rsquo;t work for you then you can try this post from Mike Robbins - <a href="https://mikefrobbins.com/2024/05/02/how-to-resolve-winget-is-unable-to-find-or-install-packages/">https://mikefrobbins.com/2024/05/02/how-to-resolve-winget-is-unable-to-find-or-install-packages/</a></p>
+</blockquote>
+
+<h3 id="windows-terminal">Windows Terminal
+  <a class="heading-anchor" href="#windows-terminal" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+<div class="code-block-container not-prose" data-code-block>
+    <div class="code-block-header">
+      <span class="code-language-label">powershell</span>
+      <button type="button" class="copy-button" aria-label="Copy code" title="Copy code">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+        </svg>
+      </button>
+    </div>
+    <div class="code-block-body">
+      <div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">WinGet</span> <span class="n">install</span> <span class="p">-</span><span class="o">-exact</span> <span class="p">-</span><span class="n">-id</span> <span class="n">Microsoft</span><span class="p">.</span><span class="py">WindowsTerminal</span> <span class="p">-</span><span class="n">-source</span> <span class="n">WinGet</span> <span class="p">-</span><span class="n">-silent</span> <span class="p">-</span><span class="n">-accept-source-agreements</span> <span class="p">-</span><span class="n">-accept-package-agreements</span></span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+  </div>
+<h3 id="powershell-7-latest">PowerShell 7 (latest)
+  <a class="heading-anchor" href="#powershell-7-latest" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+<div class="code-block-container not-prose" data-code-block>
+    <div class="code-block-header">
+      <span class="code-language-label">powershell</span>
+      <button type="button" class="copy-button" aria-label="Copy code" title="Copy code">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+        </svg>
+      </button>
+    </div>
+    <div class="code-block-body">
+      <div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">WinGet</span> <span class="n">install</span> <span class="p">-</span><span class="n">-id</span> <span class="n">Microsoft</span><span class="p">.</span><span class="py">Powershell</span> <span class="p">-</span><span class="n">-source</span> <span class="n">WinGet</span> <span class="p">-</span><span class="n">-silent</span> <span class="p">-</span><span class="n">-override</span> <span class="s2">&#34;ADD_EXPLORER_CONTEXT_MENU_OPENPOWERSHELL=1 ADD_FILE_CONTEXT_MENU_RUNPOWERSHELL=1 ENABLE_PSREMOTING=1 REGISTER_MANIFEST=1 USE_MU=1 ENABLE_MU=1 ADD_PATH=1&#34;</span> <span class="p">-</span><span class="n">-accept-source-agreements</span> <span class="p">-</span><span class="n">-accept-package-agreements</span></span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+  </div>
+<h3 id="vs-code--vs-code-insiders">VS Code &amp; VS Code Insiders
+  <a class="heading-anchor" href="#vs-code--vs-code-insiders" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+<div class="code-block-container not-prose" data-code-block>
+    <div class="code-block-header">
+      <span class="code-language-label">powershell</span>
+      <button type="button" class="copy-button" aria-label="Copy code" title="Copy code">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+        </svg>
+      </button>
+    </div>
+    <div class="code-block-body">
+      <div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">WinGet</span> <span class="n">install</span> <span class="p">-</span><span class="o">-exact</span> <span class="p">-</span><span class="n">-id</span> <span class="n">Microsoft</span><span class="p">.</span><span class="py">VisualStudioCode</span> <span class="p">-</span><span class="n">-scope</span> <span class="n">machine</span> <span class="p">-</span><span class="n">-override</span> <span class="s1">&#39;/SP- /SILENT /NORESTART /MERGETASKS=!runcode,!desktopicon,addcontextmenufiles,addcontextmenufolders,associatewithfiles,addtopath&#39;</span> <span class="p">-</span><span class="n">-accept-source-agreements</span> <span class="p">-</span><span class="n">-accept-package-agreements</span>
+</span></span><span class="line"><span class="cl"><span class="n">WinGet</span> <span class="n">install</span> <span class="p">-</span><span class="o">-exact</span> <span class="p">-</span><span class="n">-id</span> <span class="n">Microsoft</span><span class="p">.</span><span class="py">VisualStudioCode</span><span class="p">.</span><span class="py">Insiders</span> <span class="p">-</span><span class="n">-scope</span> <span class="n">machine</span> <span class="p">-</span><span class="n">-override</span> <span class="s1">&#39;/SP- /SILENT /NORESTART /MERGETASKS=!runcode,!desktopicon,addcontextmenufiles,addcontextmenufolders,associatewithfiles,addtopath&#39;</span> <span class="p">-</span><span class="n">-accept-source-agreements</span> <span class="p">-</span><span class="n">-accept-package-agreements</span></span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+  </div><blockquote>
+<p>You could use VS Codium/VSCodium Insiders as well, replace the above with:</p>
+<div class="code-block-container not-prose" data-code-block>
+    <div class="code-block-header">
+      <span class="code-language-label">powershell</span>
+      <button type="button" class="copy-button" aria-label="Copy code" title="Copy code">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+        </svg>
+      </button>
+    </div>
+    <div class="code-block-body">
+      <div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">WinGet</span> <span class="n">install</span> <span class="p">-</span><span class="o">-exact</span> <span class="p">-</span><span class="n">-id</span> <span class="n">VSCodium</span><span class="p">.</span><span class="py">VSCodium</span> <span class="p">-</span><span class="n">-scope</span> <span class="n">machine</span> <span class="p">-</span><span class="n">-override</span> <span class="s1">&#39;/SP- /SILENT /NORESTART /MERGETASKS=!runcode,!desktopicon,addcontextmenufiles,addcontextmenufolders,associatewithfiles,addtopath&#39;</span> <span class="p">-</span><span class="n">-accept-source-agreements</span> <span class="p">-</span><span class="n">-accept-package-agreements</span>
+</span></span><span class="line"><span class="cl"><span class="n">WinGet</span> <span class="n">install</span> <span class="p">-</span><span class="o">-exact</span> <span class="p">-</span><span class="n">-id</span> <span class="n">VSCodium</span><span class="p">.</span><span class="py">VSCodium</span><span class="p">.</span><span class="py">Insiders</span> <span class="p">-</span><span class="n">-scope</span> <span class="n">machine</span> <span class="p">-</span><span class="n">-override</span> <span class="s1">&#39;/SP- /SILENT /NORESTART /MERGETASKS=!runcode,!desktopicon,addcontextmenufiles,addcontextmenufolders,associatewithfiles,addtopath&#39;</span> <span class="p">-</span><span class="n">-accept-source-agreements</span> <span class="p">-</span><span class="n">-accept-package-agreements</span></span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+  </div><p>I did find that some of the Extensions didn&rsquo;t work though (I&rsquo;m looking at you GitHub copilot)</p>
+</blockquote>
+
+<h3 id="git">Git
+  <a class="heading-anchor" href="#git" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+<div class="code-block-container not-prose" data-code-block>
+    <div class="code-block-header">
+      <span class="code-language-label">powershell</span>
+      <button type="button" class="copy-button" aria-label="Copy code" title="Copy code">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+        </svg>
+      </button>
+    </div>
+    <div class="code-block-body">
+      <div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="c"># Create a git.ini for setting up Git</span>
+</span></span><span class="line"><span class="cl"><span class="sh">@&#34;
+</span></span></span><span class="line"><span class="cl"><span class="sh">[Setup]
+</span></span></span><span class="line"><span class="cl"><span class="sh">Lang=default
+</span></span></span><span class="line"><span class="cl"><span class="sh">Dir=C:\Program Files\Git
+</span></span></span><span class="line"><span class="cl"><span class="sh">Group=Git
+</span></span></span><span class="line"><span class="cl"><span class="sh">NoIcons=0
+</span></span></span><span class="line"><span class="cl"><span class="sh">SetupType=default
+</span></span></span><span class="line"><span class="cl"><span class="sh">Components=gitlfs,assoc,assoc_sh,windowsterminal
+</span></span></span><span class="line"><span class="cl"><span class="sh">Tasks=
+</span></span></span><span class="line"><span class="cl"><span class="sh">EditorOption=VisualStudioCode
+</span></span></span><span class="line"><span class="cl"><span class="sh">CustomEditorPath=
+</span></span></span><span class="line"><span class="cl"><span class="sh">DefaultBranchOption=main
+</span></span></span><span class="line"><span class="cl"><span class="sh">PathOption=Cmd
+</span></span></span><span class="line"><span class="cl"><span class="sh">SSHOption=OpenSSH
+</span></span></span><span class="line"><span class="cl"><span class="sh">TortoiseOption=false
+</span></span></span><span class="line"><span class="cl"><span class="sh">CURLOption=WinSSL
+</span></span></span><span class="line"><span class="cl"><span class="sh">CRLFOption=CRLFCommitAsIs
+</span></span></span><span class="line"><span class="cl"><span class="sh">BashTerminalOption=MinTTY
+</span></span></span><span class="line"><span class="cl"><span class="sh">GitPullBehaviorOption=Merge
+</span></span></span><span class="line"><span class="cl"><span class="sh">UseCredentialManager=Enabled
+</span></span></span><span class="line"><span class="cl"><span class="sh">PerformanceTweaksFSCache=Enabled
+</span></span></span><span class="line"><span class="cl"><span class="sh">EnableSymlinks=Disabled
+</span></span></span><span class="line"><span class="cl"><span class="sh">EnablePseudoConsoleSupport=Disabled
+</span></span></span><span class="line"><span class="cl"><span class="sh">EnableFSMonitor=Disabled
+</span></span></span><span class="line"><span class="cl"><span class="sh">&#34;@</span> <span class="p">|</span> <span class="nb">Set-Content</span> <span class="s2">&#34;git-options.ini&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="c"># Install using parameters and the git-options.ini we just created</span>
+</span></span><span class="line"><span class="cl"><span class="n">WinGet</span> <span class="n">install</span> <span class="p">-</span><span class="o">-exact</span> <span class="p">-</span><span class="n">-id</span> <span class="n">Git</span><span class="p">.</span><span class="py">Git</span> <span class="p">-</span><span class="n">-override</span> <span class="s1">&#39;/VERYSILENT /NORESTART /NOCANCEL /SP- /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS /COMPONENTS=&#34;icons,ext\reg\shellhere,assoc,assoc_sh&#34; /LOADINF=git-options.ini&#39;</span> <span class="p">-</span><span class="n">-accept-source-agreements</span> <span class="p">-</span><span class="n">-accept-package-agreements</span>
+</span></span><span class="line"><span class="cl"><span class="c"># Remove the get-options.ini file as we no longer need it</span>
+</span></span><span class="line"><span class="cl"><span class="nb">Remove-Item</span> <span class="s2">&#34;git-options.ini&#34;</span> <span class="n">-force</span></span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+  </div>
+<h3 id="gsudo">gsudo
+  <a class="heading-anchor" href="#gsudo" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+<div class="code-block-container not-prose" data-code-block>
+    <div class="code-block-header">
+      <span class="code-language-label">powershell</span>
+      <button type="button" class="copy-button" aria-label="Copy code" title="Copy code">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+        </svg>
+      </button>
+    </div>
+    <div class="code-block-body">
+      <div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">WinGet</span> <span class="n">install</span> <span class="p">-</span><span class="o">-exact</span> <span class="p">-</span><span class="n">-id</span> <span class="n">gerardog</span><span class="p">.</span><span class="py">gsudo</span> <span class="p">-</span><span class="n">-scope</span> <span class="n">machine</span> <span class="p">-</span><span class="n">-accept-source-agreements</span> <span class="p">-</span><span class="n">-accept-package-agreements</span></span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+  </div>
+<h3 id="nanazip">NanaZip
+  <a class="heading-anchor" href="#nanazip" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+<div class="code-block-container not-prose" data-code-block>
+    <div class="code-block-header">
+      <span class="code-language-label">powershell</span>
+      <button type="button" class="copy-button" aria-label="Copy code" title="Copy code">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+        </svg>
+      </button>
+    </div>
+    <div class="code-block-body">
+      <div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">WinGet</span> <span class="n">install</span> <span class="p">-</span><span class="o">-exact</span> <span class="p">-</span><span class="n">-id</span> <span class="n">M2Team</span><span class="p">.</span><span class="py">NanaZip</span> <span class="p">-</span><span class="n">-accept-source-agreements</span> <span class="p">-</span><span class="n">-accept-package-agreements</span></span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+  </div>
+<h3 id="fork">Fork
+  <a class="heading-anchor" href="#fork" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+<div class="code-block-container not-prose" data-code-block>
+    <div class="code-block-header">
+      <span class="code-language-label">powershell</span>
+      <button type="button" class="copy-button" aria-label="Copy code" title="Copy code">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+        </svg>
+      </button>
+    </div>
+    <div class="code-block-body">
+      <div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">WinGet</span> <span class="n">install</span> <span class="p">-</span><span class="o">-exact</span> <span class="p">-</span><span class="n">-id</span> <span class="n">Fork</span><span class="p">.</span><span class="py">Fork</span> <span class="p">-</span><span class="n">-source</span> <span class="n">WinGet</span> <span class="p">-</span><span class="n">-silent</span> <span class="p">-</span><span class="n">-accept-source-agreements</span> <span class="p">-</span><span class="n">-accept-package-agreements</span></span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+  </div>
+<h3 id="winmerge">WinMerge
+  <a class="heading-anchor" href="#winmerge" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+<div class="code-block-container not-prose" data-code-block>
+    <div class="code-block-header">
+      <span class="code-language-label">powershell</span>
+      <button type="button" class="copy-button" aria-label="Copy code" title="Copy code">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+        </svg>
+      </button>
+    </div>
+    <div class="code-block-body">
+      <div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">WinGet</span> <span class="n">install</span> <span class="p">-</span><span class="o">-exact</span> <span class="p">-</span><span class="n">-id</span> <span class="n">WinMerge</span><span class="p">.</span><span class="py">WinMerge</span> <span class="p">-</span><span class="n">-source</span> <span class="n">WinGet</span> <span class="p">-</span><span class="n">-silent</span> <span class="p">-</span><span class="n">-scope</span> <span class="n">machine</span> <span class="p">-</span><span class="n">-accept-source-agreements</span> <span class="p">-</span><span class="n">-accept-package-agreements</span></span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+  </div>
+<h3 id="chrome">Chrome
+  <a class="heading-anchor" href="#chrome" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+<div class="code-block-container not-prose" data-code-block>
+    <div class="code-block-header">
+      <span class="code-language-label">powershell</span>
+      <button type="button" class="copy-button" aria-label="Copy code" title="Copy code">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+        </svg>
+      </button>
+    </div>
+    <div class="code-block-body">
+      <div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">WinGet</span> <span class="n">install</span> <span class="p">-</span><span class="o">-exact</span> <span class="p">-</span><span class="n">-id</span> <span class="n">Google</span><span class="p">.</span><span class="py">Chrome</span> <span class="p">-</span><span class="n">-source</span> <span class="n">WinGet</span> <span class="p">-</span><span class="n">-silent</span> <span class="p">-</span><span class="n">-scope</span> <span class="n">machine</span> <span class="p">-</span><span class="n">-accept-source-agreements</span> <span class="p">-</span><span class="n">-accept-package-agreements</span></span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+  </div>
+<h3 id="firefox">Firefox
+  <a class="heading-anchor" href="#firefox" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+<div class="code-block-container not-prose" data-code-block>
+    <div class="code-block-header">
+      <span class="code-language-label">powershell</span>
+      <button type="button" class="copy-button" aria-label="Copy code" title="Copy code">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+        </svg>
+      </button>
+    </div>
+    <div class="code-block-body">
+      <div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">winget</span> <span class="n">install</span> <span class="p">-</span><span class="o">-exact</span> <span class="p">-</span><span class="n">-id</span> <span class="n">Mozilla</span><span class="p">.</span><span class="py">Firefox</span> <span class="p">-</span><span class="n">-source</span> <span class="n">WinGet</span> <span class="p">-</span><span class="n">-silent</span> <span class="p">-</span><span class="n">-scope</span> <span class="n">machine</span> <span class="p">-</span><span class="n">-accept-source-agreements</span> <span class="p">-</span><span class="n">-accept-package-agreements</span></span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+  </div>
+<h3 id="postman">Postman
+  <a class="heading-anchor" href="#postman" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+<div class="code-block-container not-prose" data-code-block>
+    <div class="code-block-header">
+      <span class="code-language-label">powershell</span>
+      <button type="button" class="copy-button" aria-label="Copy code" title="Copy code">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+        </svg>
+      </button>
+    </div>
+    <div class="code-block-body">
+      <div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">winget</span> <span class="n">install</span> <span class="n">-e</span> <span class="p">-</span><span class="n">-id</span> <span class="n">Postman</span><span class="p">.</span><span class="py">Postman</span> <span class="p">-</span><span class="n">-source</span> <span class="n">WinGet</span> <span class="p">-</span><span class="n">-silent</span> <span class="n">-scope</span> <span class="n">machine</span> <span class="p">-</span><span class="n">-accept-source-agreements</span> <span class="p">-</span><span class="n">-accept-package-agreements</span></span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+  </div>
+<h2 id="code-extensions">Code extensions
+  <a class="heading-anchor" href="#code-extensions" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h2>
+<p>Next, let us install some useful Extensions to Visual Studio Code.</p>
+<blockquote>
+<p>For these commands to work you must close and re-open your <code>Admin-Level PowerShell</code> or <code>Terminal (Admin)</code> window.</p>
+</blockquote>
+<div class="code-block-container not-prose" data-code-block>
+    <div class="code-block-header">
+      <span class="code-language-label">powershell</span>
+      <button type="button" class="copy-button" aria-label="Copy code" title="Copy code">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+        </svg>
+      </button>
+    </div>
+    <div class="code-block-body">
+      <div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">code</span> <span class="p">-</span><span class="n">-install-extension</span> <span class="n">EditorConfig</span><span class="p">.</span><span class="py">EditorConfig</span>
+</span></span><span class="line"><span class="cl"><span class="n">code</span> <span class="p">-</span><span class="n">-install-extension</span> <span class="n">esbenp</span><span class="p">.</span><span class="nb">prettier-vscode</span>
+</span></span><span class="line"><span class="cl"><span class="n">code</span> <span class="p">-</span><span class="n">-install-extension</span> <span class="n">github</span><span class="p">.</span><span class="py">copilot</span>
+</span></span><span class="line"><span class="cl"><span class="n">code</span> <span class="p">-</span><span class="n">-install-extension</span> <span class="n">GitHub</span><span class="p">.</span><span class="nb">github-vscode</span><span class="n">-theme</span>
+</span></span><span class="line"><span class="cl"><span class="n">code</span> <span class="p">-</span><span class="n">-install-extension</span> <span class="n">mechatroner</span><span class="p">.</span><span class="nb">rainbow-csv</span>
+</span></span><span class="line"><span class="cl"><span class="n">code</span> <span class="p">-</span><span class="n">-install-extension</span> <span class="nb">ms-vscode</span><span class="p">.</span><span class="nb">vscode-speech</span>
+</span></span><span class="line"><span class="cl"><span class="n">code</span> <span class="p">-</span><span class="n">-install-extension</span> <span class="nb">ms-vscode</span><span class="p">.</span><span class="nb">vscode-speech</span><span class="n">-language-pack-en-gb</span>
+</span></span><span class="line"><span class="cl"><span class="n">code</span> <span class="p">-</span><span class="n">-install-extension</span> <span class="n">postman</span><span class="p">.</span><span class="nb">postman-for</span><span class="n">-vscode</span>
+</span></span><span class="line"><span class="cl"><span class="n">code</span> <span class="p">-</span><span class="n">-install-extension</span> <span class="n">streetsidesoftware</span><span class="p">.</span><span class="nb">code-spell</span><span class="n">-checker</span>
+</span></span><span class="line"><span class="cl"><span class="n">code</span> <span class="p">-</span><span class="n">-install-extension</span> <span class="n">TylerLeonhardt</span><span class="p">.</span><span class="nb">vscode-inline</span><span class="n">-values-powershell</span>
+</span></span><span class="line"><span class="cl"><span class="n">code</span> <span class="p">-</span><span class="n">-install-extension</span> <span class="nb">vscode-icons</span><span class="n">-team</span><span class="p">.</span><span class="nb">vscode-icons</span>
+</span></span><span class="line"><span class="cl"><span class="n">code</span> <span class="p">-</span><span class="n">-install-extension</span> <span class="n">yzhang</span><span class="p">.</span><span class="nb">markdown-all</span><span class="n">-in-one</span>
+</span></span><span class="line"><span class="cl"><span class="n">code</span> <span class="p">-</span><span class="n">-install-extension</span> <span class="n">zainchen</span><span class="p">.</span><span class="n">json</span></span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+  </div>
+<h3 id="other-code-editors">Other Code Editors
+  <a class="heading-anchor" href="#other-code-editors" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+<p>If you are using one of the other code editors (or have multiple ones installed) just change the commands in the code block above and replace <code>code</code> with one of the following:</p>
+<ul>
+<li>For VSCode Insiders use <code>code-insiders</code></li>
+<li>For VSCoduim use <code>vscodium</code></li>
+<li>For VSCodium Insiders use <code>vscodium-insiders</code></li>
+</ul>
+<blockquote>
+<p>If the above commands don&rsquo;t work, try closing and re-opening admin level PowerShell or Terminal window.</p>
+</blockquote>
+
+<h2 id="install-applications-and-extensions-for-powershell-development">Install applications and extensions for PowerShell development
+  <a class="heading-anchor" href="#install-applications-and-extensions-for-powershell-development" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h2>
+
+<h3 id="vs-code-extensions">VS Code extensions
+  <a class="heading-anchor" href="#vs-code-extensions" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+<div class="code-block-container not-prose" data-code-block>
+    <div class="code-block-header">
+      <span class="code-language-label">powershell</span>
+      <button type="button" class="copy-button" aria-label="Copy code" title="Copy code">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+        </svg>
+      </button>
+    </div>
+    <div class="code-block-body">
+      <div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">code</span> <span class="p">-</span><span class="n">-install-extension</span> <span class="nb">ms-vscode</span><span class="p">.</span><span class="py">powershell</span>
+</span></span><span class="line"><span class="cl"><span class="n">code</span> <span class="p">-</span><span class="n">-install-extension</span> <span class="n">TylerLeonhardt</span><span class="p">.</span><span class="nb">vscode-inline</span><span class="n">-values-powershell</span>
+</span></span><span class="line"><span class="cl"><span class="n">code</span> <span class="p">-</span><span class="n">-install-extension</span> <span class="n">pspester</span><span class="p">.</span><span class="nb">pester-test</span></span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+  </div>
+<h2 id="install-applications-and-extensions-for-nodejs-development">Install applications and extensions for node.js development
+  <a class="heading-anchor" href="#install-applications-and-extensions-for-nodejs-development" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h2>
+<p>I&rsquo;ll install the application common to all the development roles</p>
+
+<h3 id="nodejs">node.js
+  <a class="heading-anchor" href="#nodejs" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+<div class="code-block-container not-prose" data-code-block>
+    <div class="code-block-header">
+      <span class="code-language-label">powershell</span>
+      <button type="button" class="copy-button" aria-label="Copy code" title="Copy code">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+        </svg>
+      </button>
+    </div>
+    <div class="code-block-body">
+      <div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">winget</span> <span class="n">install</span> <span class="n">-e</span> <span class="p">-</span><span class="n">-id</span> <span class="n">OpenJS</span><span class="p">.</span><span class="py">NodeJS</span> <span class="p">-</span><span class="n">-scope</span> <span class="n">machine</span> <span class="p">-</span><span class="n">-accept-source-agreements</span> <span class="p">-</span><span class="n">-accept-package-agreements</span></span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+  </div>
+<h3 id="vs-code-extensions-1">VS Code extensions
+  <a class="heading-anchor" href="#vs-code-extensions-1" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+
+<h2 id="install-applications-and-extensions-for-hugo-development">Install applications and extensions for hugo development
+  <a class="heading-anchor" href="#install-applications-and-extensions-for-hugo-development" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h2>
+
+<h3 id="hugo">hugo
+  <a class="heading-anchor" href="#hugo" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+<div class="code-block-container not-prose" data-code-block>
+    <div class="code-block-header">
+      <span class="code-language-label">powershell</span>
+      <button type="button" class="copy-button" aria-label="Copy code" title="Copy code">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+        </svg>
+      </button>
+    </div>
+    <div class="code-block-body">
+      <div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">winget</span> <span class="n">install</span> <span class="n">-e</span> <span class="p">-</span><span class="n">-id</span> <span class="n">Hugo</span><span class="p">.</span><span class="py">Hugo</span><span class="p">.</span><span class="py">Extended</span> <span class="p">-</span><span class="n">-accept-source-agreements</span> <span class="p">-</span><span class="n">-accept-package-agreements</span></span></span></code></pre></td></tr></table>
+</div>
+</div>
+    </div>
+  </div>
+<h3 id="vs-code-extensions-2">VS Code extensions
+  <a class="heading-anchor" href="#vs-code-extensions-2" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+<p>code &ndash;install-extension budparr.language-hugo-vscode
+code &ndash;install-extension kofuk.hugo-utils
+code &ndash;install-extension rusnasonov.vscode-hugo</p>
+
+<h2 id="install-applications-and-extensions-for-python-development">Install applications and extensions for python development
+  <a class="heading-anchor" href="#install-applications-and-extensions-for-python-development" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h2>
+
+<h3 id="vs-code-extensions-3">VS Code extensions
+  <a class="heading-anchor" href="#vs-code-extensions-3" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+
+<h2 id="install-applications-and-extensions-for-azure-development">Install applications and extensions for Azure development
+  <a class="heading-anchor" href="#install-applications-and-extensions-for-azure-development" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h2>
+
+<h3 id="vs-code-extensions-4">VS Code extensions
+  <a class="heading-anchor" href="#vs-code-extensions-4" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+<p>code &ndash;install-extension ms-azuretools.vscode-bicep
+code &ndash;install-extension ms-dotnettools.csdevkit
+code &ndash;install-extension ms-dotnettools.csharp
+code &ndash;install-extension ms-dotnettools.vscode-dotnet-runtime</p>
+
+<h2 id="install-applications-and-extensions-for-aws-development">Install applications and extensions for AWS development
+  <a class="heading-anchor" href="#install-applications-and-extensions-for-aws-development" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h2>
+
+<h3 id="vs-code-extensions-5">VS Code extensions
+  <a class="heading-anchor" href="#vs-code-extensions-5" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+
+<h2 id="install-applications-and-extensions-for-sql-development">Install applications and extensions for SQL development
+  <a class="heading-anchor" href="#install-applications-and-extensions-for-sql-development" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h2>
+
+<h3 id="vs-code-extensions-6">VS Code extensions
+  <a class="heading-anchor" href="#vs-code-extensions-6" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h3>
+<p>code &ndash;install-extension ms-mssql.data-workspace-vscode
+code &ndash;install-extension ms-mssql.mssql
+code &ndash;install-extension ms-mssql.sql-bindings-vscode
+code &ndash;install-extension ms-mssql.sql-database-projects-vscode</p>
+
+<h2 id="configure-terminal-settings">Configure Terminal settings
+  <a class="heading-anchor" href="#configure-terminal-settings" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h2>
+<p>Modify settings.json file</p>
+
+<h2 id="configure-visual-studio-settings">Configure Visual Studio settings
+  <a class="heading-anchor" href="#configure-visual-studio-settings" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h2>
+<p>Modify settings.json file</p>
+
+<h2 id="set-git-global-config-options">Set git global config options
+  <a class="heading-anchor" href="#set-git-global-config-options" aria-label="Copy link to this section">
+    <svg viewBox="0 0 1024 1024" width="18" height="18" fill="currentColor" aria-hidden="true">
+      <path d="M633.417143 429.007238a174.567619 174.567619 0 0 1 0 246.857143l-155.306667 155.306667a186.709333 186.709333 0 1 1-264.045714-264.045715l76.483048-76.507428 51.73638 51.736381-76.507428 76.507428a113.566476 113.566476 0 1 0 160.597333 160.597334l155.306667-155.306667a101.424762 101.424762 0 0 0 0-143.408762z m208.603428-225.816381a186.709333 186.709333 0 0 1 0 264.045714L765.561905 543.744l-51.736381-51.712 76.507428-76.507429a113.566476 113.566476 0 1 0-160.597333-160.597333l-155.306667 155.306667a101.424762 101.424762 0 0 0 0 143.408762l-51.736381 51.736381a174.567619 174.567619 0 0 1 0-246.857143l155.306667-155.306667a186.709333 186.709333 0 0 1 264.045714 0z"/>
+    </svg>
+  </a>
+</h2>
+
+    </div>
+    
+    
+    
+    
+    
+    <div class="article-inner pb-2 text-sm text-fg-faint flex items-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-fg-dim" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      </svg>
+      Last updated on 2025-06-18
+    </div>
+    
+    
+    <footer class="py-6 bg-canvas border-t border-line-soft">
+      <div class="article-inner">
+          
+          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
+            
+            
+            
+              
+              <span class="text-xs" style="display: inline-flex; align-items: center; font-size: 0.75rem; font-weight: 500; padding: 0.25rem 0.625rem; border-radius: 0.25rem; background-color: #e6f4ea; color: #166534; border: 1px solid #a3bdab;">
+                
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 0.85rem; height: 0.85rem; margin-right: 0.375rem;">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                Series
+              </span>
+              
+            
+
+            
+            
+              
+              <span class="text-xs" style="display: inline-flex; align-items: center; font-size: 0.75rem; font-weight: 500; padding: 0.25rem 0.625rem; border-radius: 0.25rem; background-color: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb;">
+                
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 0.85rem; height: 0.85rem; margin-right: 0.375rem;">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                  <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                </svg>
+                powershell
+              </span>
+              
+              <span class="text-xs" style="display: inline-flex; align-items: center; font-size: 0.75rem; font-weight: 500; padding: 0.25rem 0.625rem; border-radius: 0.25rem; background-color: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb;">
+                
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 0.85rem; height: 0.85rem; margin-right: 0.375rem;">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                  <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                </svg>
+                virtual machine
+              </span>
+              
+              <span class="text-xs" style="display: inline-flex; align-items: center; font-size: 0.75rem; font-weight: 500; padding: 0.25rem 0.625rem; border-radius: 0.25rem; background-color: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb;">
+                
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 0.85rem; height: 0.85rem; margin-right: 0.375rem;">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                  <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                </svg>
+                hyper-v
+              </span>
+              
+            
+
+          </div>
+
+      
+
+
+      
+      
+
+      
+      <div class="mt-6 flex justify-center">
+        <a href="/" class="inline-flex items-center text-fg-muted hover:text-accent transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Home
+        </a>
+      </div>
+    </div>
+    </footer>
+  </article>
+
+  
+  
+</div>
+
+  
+  <aside class="toc-sidebar" aria-label="Table of Contents">
+    <div class="toc-sidebar-title text-xs font-semibold uppercase tracking-wide text-fg-faint mb-2">Table of Contents</div>
+    <div class="toc-nav text-sm">
+      <nav id="TableOfContents-side">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#what-am-i-going-to-install">What am I going to install?</a></li>
+        <li><a href="#install-common-applications">Install common applications</a>
+          <ul>
+            <li><a href="#winget">WinGet</a></li>
+            <li><a href="#windows-terminal">Windows Terminal</a></li>
+            <li><a href="#powershell-7-latest">PowerShell 7 (latest)</a></li>
+            <li><a href="#vs-code--vs-code-insiders">VS Code &amp; VS Code Insiders</a></li>
+            <li><a href="#git">Git</a></li>
+            <li><a href="#gsudo">gsudo</a></li>
+            <li><a href="#nanazip">NanaZip</a></li>
+            <li><a href="#fork">Fork</a></li>
+            <li><a href="#winmerge">WinMerge</a></li>
+            <li><a href="#chrome">Chrome</a></li>
+            <li><a href="#firefox">Firefox</a></li>
+            <li><a href="#postman">Postman</a></li>
+          </ul>
+        </li>
+        <li><a href="#code-extensions">Code extensions</a>
+          <ul>
+            <li><a href="#other-code-editors">Other Code Editors</a></li>
+          </ul>
+        </li>
+        <li><a href="#install-applications-and-extensions-for-powershell-development">Install applications and extensions for PowerShell development</a>
+          <ul>
+            <li><a href="#vs-code-extensions">VS Code extensions</a></li>
+          </ul>
+        </li>
+        <li><a href="#install-applications-and-extensions-for-nodejs-development">Install applications and extensions for node.js development</a>
+          <ul>
+            <li><a href="#nodejs">node.js</a></li>
+            <li><a href="#vs-code-extensions-1">VS Code extensions</a></li>
+          </ul>
+        </li>
+        <li><a href="#install-applications-and-extensions-for-hugo-development">Install applications and extensions for hugo development</a>
+          <ul>
+            <li><a href="#hugo">hugo</a></li>
+            <li><a href="#vs-code-extensions-2">VS Code extensions</a></li>
+          </ul>
+        </li>
+        <li><a href="#install-applications-and-extensions-for-python-development">Install applications and extensions for python development</a>
+          <ul>
+            <li><a href="#vs-code-extensions-3">VS Code extensions</a></li>
+          </ul>
+        </li>
+        <li><a href="#install-applications-and-extensions-for-azure-development">Install applications and extensions for Azure development</a>
+          <ul>
+            <li><a href="#vs-code-extensions-4">VS Code extensions</a></li>
+          </ul>
+        </li>
+        <li><a href="#install-applications-and-extensions-for-aws-development">Install applications and extensions for AWS development</a>
+          <ul>
+            <li><a href="#vs-code-extensions-5">VS Code extensions</a></li>
+          </ul>
+        </li>
+        <li><a href="#install-applications-and-extensions-for-sql-development">Install applications and extensions for SQL development</a>
+          <ul>
+            <li><a href="#vs-code-extensions-6">VS Code extensions</a></li>
+          </ul>
+        </li>
+        <li><a href="#configure-terminal-settings">Configure Terminal settings</a></li>
+        <li><a href="#configure-visual-studio-settings">Configure Visual Studio settings</a></li>
+        <li><a href="#set-git-global-config-options">Set git global config options</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    </div>
+  </aside>
+  
+</div>
+  
+  
+    </main>
+  </div>
+
+  <footer class="w-full max-w-4xl mx-auto px-6 overflow-x-auto sm:overflow-visible">
+    <div class="py-8 border-t border-line bg-canvas mt-2">
+  <div class="container mx-auto px-4 max-w-4xl">
+     
+    
+
+    
+
+    <div class="text-center mt-2 text-sm text-fg-faint">
+      &copy; 2026 kelrys.com | Powered by <a href="https://github.com/Daucloud/hugo-theme-void" class="text-fg-muted hover:text-fg-strong hover:underline">hugo-theme-void</a>
+    </div>
+  </div>
+</div>
+
+  </footer>
+</body>
+</html>

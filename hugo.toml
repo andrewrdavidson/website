@@ -1,0 +1,113 @@
+baseURL = 'https://kelrys.com/'
+defaultContentLanguage = 'en'   # UI language: picks i18n/en.toml
+hasCJKLanguage = true           # correct word counts / summaries for Chinese content
+enableRobotsTXT = true
+title = 'kelrys.com'
+theme = "void"
+
+[languages]
+  [languages.en]
+    locale = 'en-GB'
+
+# Main menu. `identifier` matches an i18n key (nav_home, nav_posts, ...) so the
+# label follows the site language; drop it to show `name` verbatim.
+[[menus.main]]
+name = 'Home'
+identifier = 'nav_home'
+pageRef = '/'
+weight = 10
+
+[[menus.main]]
+name = 'Posts'
+pageRef = '/posts'
+weight = 20
+
+[[menus.main]]
+name = 'Series'
+pageRef = '/series'
+weight = 25
+
+[[menus.main]]
+name = 'Tags'
+pageRef = '/tags'
+weight = 30
+
+[[menus.main]]
+name = 'About'
+pageRef = '/about'
+weight = 40
+
+# Required for the theme's code blocks (class-based Chroma output)
+[markup.highlight]
+  noClasses = false
+  lineNos = true
+  lineNumbersInTable = true
+
+# Math: KaTeX is rendered at build time from these passthrough delimiters
+[markup.goldmark.extensions.passthrough]
+  enable = true
+  [markup.goldmark.extensions.passthrough.delimiters]
+    block = [['$$', '$$'], ['\\[', '\\]']]
+    inline = [['$', '$'], ['\\(', '\\)']]
+
+# Image processing defaults used by the render-image hook / figure shortcode
+[imaging]
+  resampleFilter = 'Lanczos'
+  [imaging.jpeg]
+    quality = 85
+  [imaging.webp]
+    quality = 85
+  [imaging.avif]
+    quality = 85
+
+# Table of Contents (recommended)
+[markup]
+  [markup.tableOfContents]
+    startLevel = 1
+    endLevel = 6
+    ordered = false
+
+# Allow raw HTML within Markdown (for KaTeX, etc.)
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+
+
+[security]
+  allowContent = ['! ^text/html$', '! ^text/org$']
+  enableInlineShortcodes = false
+
+  [security.exec]
+    allow = ['^(dart-)?sass$', '^go$', '^git$', '^node$', '^postcss$', '^tailwindcss$', '^npx$']
+    osEnv = ['(?i)^((HTTPS?|NO)_PROXY|PATH(EXT)?|APPDATA|TE?MP|TERM|GO\w+|(XDG_CONFIG_)?HOME|USERPROFILE|SSH_AUTH_SOCK|DISPLAY|LANG|SYSTEMDRIVE|PROGRAMDATA)$']
+
+  [security.funcs]
+    getenv = ['^HUGO_', '^CI$']
+
+  [security.http]
+    methods = ['(?i)GET|POST']
+    proxyFromEnvironment = false
+    urls = ['(?i)^https?://[a-z0-9]', '! (?i)^https?://\d+\.', '! (?i)localhost', '! (?i)^https?://[^/?#]*@']
+
+  [security.node]
+    [security.node.permissions]
+      allowAddons = ['tailwindcss']
+      allowChildProcess = ['tailwindcss']
+      allowRead = ['.']
+      allowWorker = ['tailwindcss']
+      allowWrite = []
+      disable = false
+
+[taxonomies]
+  category = "categories"
+  tag = "tags"
+  series = "series"
+
+[related]
+  threshold = 80
+  includeNewer = true
+  toLower = true
+
+  [[related.indices]]
+    name = "series"
+    weight = 100
