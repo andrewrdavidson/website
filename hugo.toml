@@ -111,3 +111,7 @@ weight = 40
   [[related.indices]]
     name = "series"
     weight = 100
+
+[caches]
+  [caches.images]
+    dir = ':cacheDir/images'
