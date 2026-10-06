@@ -7,15 +7,15 @@ language = 'en'
 
 # A bit about me
 
-I'm Andrew Davidson, I'm a 30+ year IT veteran with a varied career in almost all parts of the IT space. I've written software, supported both hardware and software, consulted on Microsoft products for customers (SharePoint, Azure Stack) and I've trained people to use IT. It's my second passion in life*. 
+Ey up*, I’m Andrew Davidson. I’m a 30+ year IT veteran who has rolled up his sleeves and had a proper go at pretty much every corner of the tech space. From building bare-metal server hardware and scripting automated deployments to consulting on Microsoft tech like SharePoint and Azure Stack, I’ve been around the block more than a few times.
 
-I love to make things work, from building new server hardware, installing operating systems, to deploying solutions through DevOps. I have written (or co-written) several internal code solutions using PowerShell, along with Desired State Configuration DSC, ARM templates.  
+Tech is my second passion in life**. I genuinely love making things work, whether I'm deploying code through DevOps pipelines or sorting out infrastructure. Over the years, I’ve co-authored plenty of internal code using PowerShell, DSC, and ARM templates. Right now, I’m getting stuck into using Terraform to deploy infrastructure onto Windows hosts and our new Proxmox servers—with a view to shifting it all into the cloud once it's working properly, and of course writing all about it here in my blog.
 
-I'm currently working on deploying infrastructure using terraform, onto Windows hosts, and our new proxmox servers, with a view to using cloud resources once it all works.
+<sub>\* To non-native Yorkshire speakers, Hi</sub><br>
+<sub>\** My wife is my first passion, and yes, she absolutely made me put that in. I know which side my bread is buttered! 😉</sub>
 
-<sup><sub>\* My wife is the first, and Yes, she did tell me to put that! :-)</sub></sup>
+# What do I actually do?
 
-# What do I do?
+Currently, I’m working as a Senior Support Engineer for a small consultancy company based right here in West Yorkshire.
 
-I'm currently working as a Senior Support Engineer for a small consultancy company in West Yorkshire, the north of England, UK. I support our own internal hardware and software, using a mix of old school servers and my experience gained as a Systems Administrator and new Azure technologies, as well as developing new automation solutions.
-
+My day-to-day is a proper hybrid mix. When I'm not supporting our customers, and our own software tools, I keep our internal systems humming by blending classic, old-school systems administration with modern Azure cloud technologies, developing and building new automation solutions to make our infrastructure run like clockwork—no dramas, no fuss.
