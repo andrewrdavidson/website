@@ -9,7 +9,13 @@ author = 'Andrew Davidson'
 summary = 'Use PowerShell to inspect current IP addresses, find DHCP failures, and assign a static IPv4 address when needed.'
 +++
 
-The quickest way to see what addresses are currently assigned to a Windows machine is to query the network adapter information directly from PowerShell.
+In my old school ways, getting the IP address of the local Windows machine was easy:
+
+```bash
+ipconfig
+```
+
+Now we have a more modern shell we can use that to see what addresses are currently assigned to a Windows machine. We can query the network adapter information directly from PowerShell.
 
 ```powershell
 Get-NetIPAddress
