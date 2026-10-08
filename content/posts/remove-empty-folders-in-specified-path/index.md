@@ -1,6 +1,6 @@
 +++
 date = '2025-06-22T16:23:50+01:00'
-draft = false
+draft = true
 title = 'Remove empty folders in specified path'
 description = 'This is the first post'
 tags = ['PowerShell', 'Folders', 'Emptying']

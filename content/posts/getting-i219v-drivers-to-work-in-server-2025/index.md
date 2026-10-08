@@ -1,6 +1,6 @@
 +++
 date = '2026-06-23T00:00:00+08:00'
-draft = false
+draft = true
 title = 'Getting I219V drivers to work in Server 2022/25'
 description = 'This is the first post'
 tags = ['Network Driver', 'Intel', 'Intel I219-V', 'I219-V']

@@ -1,6 +1,6 @@
 +++
-date = '2025-06-18T10:00:00+01:00'
-draft = false
+date = '2026-07-02T20:54:00+01:00'
+draft = true
 title = 'Installing some applications'
 description = 'This is the fourth post'
 tags = ['powershell', 'virtual machine', 'hyper-v']

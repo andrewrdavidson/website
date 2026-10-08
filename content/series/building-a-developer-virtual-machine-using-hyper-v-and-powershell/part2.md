@@ -1,6 +1,6 @@
 +++
-date = '2025-06-16T10:00:00+01:00'
-draft = false
+date = '2026-06-18T20:45:00+01:00'
+draft = true
 title = 'What are we going to do?'
 description = 'This is the second post'
 tags = ['powershell', 'virtual machine', 'hyper-v']
@@ -37,7 +37,6 @@ You can get an evaluation edition of Windows 11 from here <https://www.microsoft
 ```callout {.info}
 You need to run these commands inside your host machine using an `Admin Level Windows PowerShell` or `Windows Terminal (Admin)` prompt. So get yourself logged in, and let's get going!
 ```
-
 
 ### Virtual Machine setup variables
 
@@ -146,24 +145,6 @@ if ($requireTPM -eq $true) {
 }
 ```
 
-### Tidy Up the Virtual Machine
-
-This code exports the Virtual Machine, cleans up the original build folders and files, moves the exported Virtual Machine back into the correct location and then imports it. I do this so that all the files for the Virtual machine are all under the folder named for the Virtual Machine and not spread in seemingly random locations across my disk(s).
-
-```powershell
-Export-VM -Name $vmName -Path $vmExportPath
-Remove-VM -Name $vmName -Force
-Get-ChildItem -Path $vmLocation -Recurse | Remove-Item -Recurse -Force
-Remove-Item -Path $vmLocation
-
-Move-Item -Path $vmExportedLocation -Destination $vmLocation
-
-$vmcx = Get-ChildItem -Path $vmLocation -Recurse | 
-            Where-Object Extension -eq '.vmcx'
-$vmcxFile = $vmcx.FullName
-Import-VM -Path $vmcxFile -Register
-```
-
 ### Setup Checkpoints
 
 This code sets up the Snapshots/Checkpoint/whatever they're called today
@@ -209,4 +190,116 @@ $setVMFirmware = @{
 }
 
 # Set-VMFirmware -VMName $vmName -BootOrder $(Get-VMDvdDrive -VMName $vmName), $(Get-VMHardDiskDrive -VMName $vmName)[0]
+```
+
+### Tidy Up the Virtual Machine
+
+This code exports the Virtual Machine, cleans up the original build folders and files, moves the exported Virtual Machine back into the correct location and then imports it. I do this so that all the files for the Virtual machine are all under the folder named for the Virtual Machine and not spread in seemingly random locations across my disk(s).
+
+```powershell
+Export-VM -Name $vmName -Path $vmExportPath
+Remove-VM -Name $vmName -Force
+Get-ChildItem -Path $vmLocation -Recurse | Remove-Item -Recurse -Force
+Remove-Item -Path $vmLocation
+
+Move-Item -Path $vmExportedLocation -Destination $vmLocation
+
+$vmcx = Get-ChildItem -Path $vmLocation -Recurse | 
+            Where-Object Extension -eq '.vmcx'
+$vmcxFile = $vmcx.FullName
+Import-VM -Path $vmcxFile -Register
+```
+
+### Lets put it all together 
+
+This code block brings all the previous steps together into a single repeatable script: it creates the virtual machine, adds the extra disk, enables TPM when required, exports the finished machine, removes the temporary working copy, and then imports the exported virtual machine back into its final folder structure. The goal is to keep the configuration simple, the layout tidy, and the process easy to automate again later.
+
+```powershell
+$vmName = 'TestVM' 
+$isoFile = 'C:\Media\os.iso' 
+$requireTPM = $true 
+$vmRootPath = 'C:\VirtualMachines'
+$vmExportPath = 'C:\Export'
+$vmMemory = 8GB
+$vmCpuCount = 4
+$vhdPrimarySize = 100GB
+$vhdSecondarySize = 20GB
+$vmSwitchName = "External Virtual Switch"
+$vhdPrimaryName = '{0}-C.vhdx' -f $vmName
+$vhdSecondaryName = '{0}-D.vhdx' -f $vmName
+$vmLocation = (Join-Path -Path $vmRootPath -ChildPath $vmName)
+$vmExportedLocation = (Join-Path -Path $vmExportPath -ChildPath $vmName)
+
+$newVmSplat = @{
+    Name               = $vmName 
+    MemoryStartupBytes = $vmMemory 
+    NewVHDPath         = $vhdPrimaryName 
+    NewVHDSizeBytes    = $vhdPrimarySize
+    Generation         = 2
+    SwitchName         = $vmSwitchName
+    Path               = $vmRootPath
+}
+New-VM @newVmSplat
+
+$newVhdSplat = @{
+    Path        = (Join-Path -Path $vmLocation -ChildPath $vhdSecondaryName) 
+    SizeInBytes = 20GB
+}
+New-VHD @newVhdSplat
+
+$addVMHardDiskDrive = @{
+    VmName        = $vmName
+    Path = (Join-Path -Path $vmLocation -ChildPath $vhdSecondaryName)
+}
+Add-VMHardDiskDrive @addVMHardDiskDrive
+
+if ($requireTPM -eq $true) {
+    $owner = Get-HgsGuardian 'UntrustedGuardian'
+    if ($null -ne $owner) {
+        $kp = New-HgsKeyProtector -Owner $owner -AllowUntrustedRoot
+        Set-VMKeyProtector -VMName $vmName -KeyProtector $kp.RawData
+        Enable-VMTPM -VMName $vmName
+    }
+    else {
+        Write-Output "Host Guardian not yet setup." 
+        Write-Output "You must enable the vTPM settings manually in at least one"
+        Write-Output "Hyper-V virtual machine before this can be automated"
+    }
+}
+
+$newVhdSplat = @{
+    Path        = (Join-Path -Path $vmLocation -ChildPath $vhdSecondaryName) 
+    SizeInBytes = 20GB
+}
+New-VHD @newVhdSplat
+
+$addVMHardDiskDrive = @{
+    VmName        = $vmName
+    Path = (Join-Path -Path $vmLocation -ChildPath $vhdSecondaryName)
+}
+Add-VMHardDiskDrive @addVMHardDiskDrive
+
+if ($requireTPM -eq $true) {
+    $owner = Get-HgsGuardian 'UntrustedGuardian'
+    if ($null -ne $owner) {
+        $kp = New-HgsKeyProtector -Owner $owner -AllowUntrustedRoot
+        Set-VMKeyProtector -VMName $vmName -KeyProtector $kp.RawData
+        Enable-VMTPM -VMName $vmName
+    }
+    else {
+        Write-Output "Host Guardian not yet setup." 
+        Write-Output "You must enable the vTPM settings manually in at least one"
+        Write-Output "Hyper-V virtual machine before this can be automated"
+    }
+}
+
+Export-VM -Name $vmName -Path $vmExportPath
+Remove-VM -Name $vmName -Force
+Get-ChildItem -Path $vmLocation -Recurse | Remove-Item -Recurse -Force
+Remove-Item -Path $vmLocation
+
+Move-Item -Path $vmExportedLocation -Destination $vmLocation
+
+$vmConfig = Get-ChildItem -Path $vmLocation -Recurse -Filter *.vmcx | Select-Object -First 1
+Import-VM -Path $vmConfig.FullName -Register
 ```

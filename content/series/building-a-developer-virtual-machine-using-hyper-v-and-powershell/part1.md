@@ -1,9 +1,9 @@
 +++
-date = '2025-06-15T10:00:00+01:00'
-draft = false
+date = '2026-06-11T19:12:00+01:00'
+draft = true
 title = 'Introduction'
 description = 'This is the first post'
-tags = ['Network Driver', 'Intel', 'Intel I219-V', 'I219-V']
+tags = ['powershell', 'virtual machine', 'hyper-v']
 categories = ['Series']
 author = 'Andrew Davidson'
 summary = 'First post in the Second Series: Introduction.'
@@ -22,9 +22,9 @@ I don't normally develop on my host machine since I get conflicting configuratio
 
 You will need to know a few things before we start:
 
-* A virtualisation host running on Windows (you can use Windows 10/11, Windows Server 2019 or 2022) with the Hyper-V feature installed and configured.
+* A virtualisation host running on a Windows OS (you can use Windows 10/11, Windows Server 2019,  2022, or Server 2025) with the Hyper-V feature installed and configured.
   * The default Hyper-V path used in the code samples is `C:\Virtualisation`, with the ISOs in the `C:\Media` folder, and the exports going to the `C:\Exports` folder. Substitute your own paths as needed.
 * Basic bare-metal OS installation knowledge.
-* Familiarity with using a command line (such as PowerShell and we will be using the built-in version 5.1 in this post)
+* Familiarity with using a command line (such as PowerShell and we will be using the built-in version 5.1 in this post, but PowerShell 7 should work just fine)
 * How to start Windows PowerShell in admin mode, you can use the standard Windows PowerShell option or Windows PowerShell through Windows Terminal. Both will work just fine.
-* The virtual machine should have an internet connection.
+* The virtual machine should have an network connection that can get to the internet.
