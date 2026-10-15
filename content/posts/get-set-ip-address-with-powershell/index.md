@@ -7,6 +7,21 @@ tags = ['PowerShell', 'Networking', 'IP Address', 'Windows Server', 'Windows']
 categories = ['Tips']
 author = 'Andrew Davidson'
 summary = 'Use PowerShell to inspect current IP addresses, find DHCP failures, and assign a static IPv4 address when needed.'
+
+# Version history, rendered at the foot of the post by layouts/_default/single.html and shown
+# only when there is more than one entry. Seeded from this file's real git commits; edit the
+# notes and version labels to suit.
+[[history]]
+version = '1.0'
+date = 2026-10-08T09:32:14+01:00
+author = 'Andrew Davidson'
+note = 'First published'
+
+[[history]]
+version = '1.1'
+date = 2026-10-08T09:46:53+01:00
+author = 'Andrew Davidson'
+note = 'Added the old-school ipconfig example'
 +++
 
 In my old school ways, getting the IP address of the local Windows machine was easy:
