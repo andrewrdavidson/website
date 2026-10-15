@@ -1,0 +1,31 @@
+{{ define "main" }}
+<div class="max-w-4xl mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-center text-fg mb-8">{{ .Title }}</h1>
+  <div class="mb-8 text-center text-fg-muted text-sm"><p>{{ i18n "series_help_text" | default "Multi-part posts, in reading order" }}</p></div>
+  {{/* Newest first: Hugo cannot sort a taxonomy by date, so build a slice keyed on each
+       series' most recent post and sort that, instead of the default by-count order. */}}
+  {{ $series := slice }}
+  {{ range $name, $taxonomy := .Data.Terms }}
+    {{ $series = $series | append (dict "term" $taxonomy "latest" (index $taxonomy.Pages.ByDate.Reverse 0).Date.Unix) }}
+  {{ end }}
+  {{ $dateFormat := i18n "date_month_day_format" | default "Jan 02 2006" }}
+
+  <div class="space-y-4">
+    {{ range sort $series "latest" "desc" }}
+    {{ $first := (index .term.Pages.ByDate 0).Date }}
+    {{ $last := (index .term.Pages.ByDate.Reverse 0).Date }}
+    <a href="{{ .term.Page.RelPermalink }}" class="block bg-surface rounded-lg shadow-sm hover:shadow-md transition-shadow p-5 no-underline group">
+      <div class="flex items-baseline justify-between">
+        <span class="text-lg font-medium text-fg group-hover:text-accent transition-colors">{{ .term.Page.Title }}</span>
+        <span class="category-count-badge ml-2 bg-accent-soft text-accent px-2 py-0.5 text-xs rounded-full">{{ .term.Count }} {{ i18n "articles" | default "articles" }}</span>
+      </div>
+      <div class="text-fg-faint text-sm mt-1">
+        {{ if eq $first.Unix $last.Unix }}{{ $first.Format $dateFormat }}{{ else }}{{ $first.Format $dateFormat }} – {{ $last.Format $dateFormat }}{{ end }}
+      </div>
+    </a>
+    {{ else }}
+    <p class="text-center text-fg-muted italic">{{ i18n "series_empty" | default "No series yet." }}</p>
+    {{ end }}
+  </div>
+</div>
+{{ end }}

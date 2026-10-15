@@ -1,0 +1,27 @@
+{{- /* Category chip: the category icon plus the term, linking to that category's taxonomy page.
+
+       A sibling of partials/tag-chip.html, so the homepage, post pages and lists share one chip
+       vocabulary. Colours come from the accent tokens rather than the literal palegreen
+       (#e6f4ea / #166534 / #a3bdab) the homepage used, which is what lets it follow dark mode;
+       see fix #18 in docs/BlogIssues-Fixes.md.
+
+       Call with the category string as context:  {{ partial "category-chip.html" $category }}
+
+       It also accepts a dict ({{ partial "category-chip.html" (dict "term" $category) }}) so
+       the shared term page can pass it the same shape it passes the tag chip. This chip has no
+       "current" variant: it is the accent-tinted one by design, so every instance is themed
+       alike and the dict's extra keys are ignored. */ -}}
+{{- $term := . -}}
+{{- if reflect.IsMap . -}}
+  {{- $term = .term -}}
+{{- end -}}
+<a href="{{ "/categories/" | relLangURL }}{{ $term | urlize }}"
+   class="category-chip text-xs inline-flex items-center bg-accent-soft text-accent-strong border border-accent-line px-2 py-1 rounded hover:bg-accent-soft-2 transition-colors">
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <rect x="3" y="3" width="7" height="7"></rect>
+    <rect x="14" y="3" width="7" height="7"></rect>
+    <rect x="14" y="14" width="7" height="7"></rect>
+    <rect x="3" y="14" width="7" height="7"></rect>
+  </svg>
+  {{ $term }}
+</a>

@@ -1,0 +1,146 @@
+{{- /* Shared body of a taxonomy *term* page (e.g. /tags/powershell/ or /categories/tips/), so
+       the tag and category pages cannot drift apart. Callers pass the taxonomy:
+
+         {{ partial "term-page.html" (dict "page" . "taxonomy" "tags"      "chip" "tag-chip.html") }}
+         {{ partial "term-page.html" (dict "page" . "taxonomy" "categories" "chip" "category-chip.html") }}
+
+       `taxonomy` is used three ways: the URL base for the chips and the "All …" link
+       (/tags/, /categories/), the front-matter key whose terms are listed on each card, and
+       the icon/i18n label choice. `chip` renders those terms so the chip vocabulary stays
+       single-sourced in partials/tag-chip.html and partials/category-chip.html.
+
+       The current term is picked out with the chip partial's `current` flag, which is what
+       makes a term page's own term stand out from its siblings. */ -}}
+{{- $page := .page -}}
+{{- $taxonomy := .taxonomy -}}
+{{- $chip := .chip -}}
+{{- $isCategory := eq $taxonomy "categories" -}}
+{{- $title := $page.Title -}}
+{{- $allKey := printf "all_%s" $taxonomy -}}
+{{- $allDefault := cond $isCategory "All categories" "All Tags" -}}
+<div class="max-w-4xl mx-auto px-4 py-8">
+  <!-- Term heading -->
+  <div class="mb-8 text-center">
+    <div class="flex items-center justify-center mb-2">
+      {{ if $isCategory }}
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-accent mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <rect x="3" y="3" width="7" height="7"></rect>
+        <rect x="14" y="3" width="7" height="7"></rect>
+        <rect x="14" y="14" width="7" height="7"></rect>
+        <rect x="3" y="14" width="7" height="7"></rect>
+      </svg>
+      {{ else }}
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-accent mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+      </svg>
+      {{ end }}
+      <h1 class="text-3xl font-bold text-fg">{{ $title }}</h1>
+    </div>
+    <div class="text-fg-muted text-sm">
+      {{ len $page.Pages }} {{ i18n "articles" | default "篇文章" }}
+    </div>
+  </div>
+
+  <!-- 按年份分组的文章列表 -->
+  <div class="space-y-16">
+    {{ range $page.Pages.GroupByDate "2006" }}
+    <div class="relative">
+      <!-- 年份指示器 -->
+      <div class="mb-8 flex items-center">
+        <div class="flex-shrink-0 w-16 h-16 rounded-full bg-gradient-to-br from-accent-soft-2 to-accent-soft flex items-center justify-center text-accent-strong font-bold text-xl shadow-sm relative">
+          <span class="relative z-10">{{ .Key }}</span>
+          <!-- 装饰性光晕 -->
+          <div class="absolute inset-0 rounded-full bg-accent-line opacity-20 blur-sm"></div>
+        </div>
+        <div class="ml-4 h-0.5 bg-gradient-to-r from-accent-line via-accent-soft-2 to-transparent flex-grow"></div>
+      </div>
+      
+      <!-- 文章列表 -->
+      <div class="ml-8 space-y-6">
+        {{ range .Pages.ByDate.Reverse }}
+        <div class="relative">
+          <a href="{{ .RelPermalink }}" class="absolute inset-0 z-10" aria-label="{{ .Title }}"></a>
+          <div class="bg-surface rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden group">
+            <div class="p-5">
+              <div class="flex flex-col sm:flex-row sm:items-baseline justify-between mb-3">
+                <h3 class="text-xl font-medium text-fg group-hover:text-accent transition-colors">
+                  {{ .Title }}
+                </h3>
+                {{/* `datetime` was missing here (and on the /posts/ list): the rendered text is a
+                     formatted date, which is not a valid `<time>` value, so the element said
+                     nothing machine-readable. It is also what the new-badge script reads (#28). */}}
+                <time datetime="{{ .Date.Format "2006-01-02" }}" class="text-sm text-fg-faint mt-1 sm:mt-0 sm:ml-4 flex items-center">
+                  {{ .Date.Format (i18n "date_month_day_format" | default "01月02日") }}
+                  {{/* "New since your last visit" (#28). Rendered hidden and switched on by
+                       assets/js/new-badge.js from the date in data-post-date, so with JavaScript
+                       off (or storage blocked) nothing shows and the page is what it is today. */}}
+                  <span class="chip-new ml-2" data-post-date="{{ .Date.Format "2006-01-02" }}" hidden>{{ i18n "new_badge" | default "New" }}</span>
+                </time>
+              </div>
+              
+              {{ with partial "summary.html" . }}
+              <div class="text-fg-muted text-sm">{{ . }}</div>
+              {{ end }}
+              
+              {{ with index .Params $taxonomy }}
+              <div class="mt-3 flex flex-wrap gap-2 relative z-20">
+                {{ range . }}
+                {{ partial $chip (dict "term" . "current" (eq . $title)) }}
+                {{ end }}
+              </div>
+              {{ end }}
+              
+              <div class="mt-4">
+                <span class="text-accent text-sm inline-flex items-center group-hover:translate-x-1 transition-transform duration-300">
+                  {{ i18n "list_read_more" | default "阅读全文" }}
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        {{ end }}
+      </div>
+    </div>
+    {{ end }}
+  </div>
+  
+  <!-- 分页导航 -->
+  {{ if or $page.Paginator.HasPrev $page.Paginator.HasNext }}
+  <div class="mt-10 flex justify-between">
+    {{ if $page.Paginator.HasPrev }}
+    <a href="{{ $page.Paginator.Prev.URL }}" class="px-4 py-2 bg-surface shadow-sm rounded-full text-fg-2 hover:bg-hover transition-colors flex items-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      {{ i18n "pagination_previous" | default "上一页" }}
+    </a>
+    {{ else }}
+    <div></div>
+    {{ end }}
+    
+    {{ if $page.Paginator.HasNext }}
+    <a href="{{ $page.Paginator.Next.URL }}" class="px-4 py-2 bg-surface shadow-sm rounded-full text-fg-2 hover:bg-hover transition-colors flex items-center">
+      {{ i18n "pagination_next" | default "下一页" }}
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+    </a>
+    {{ else }}
+    <div></div>
+    {{ end }}
+  </div>
+  {{ end }}
+  
+  <!-- 导航链接 -->
+  <div class="mt-8 flex justify-center space-x-8">
+    <a href="{{ $taxonomy | relURL }}" class="text-fg-muted hover:text-accent transition-colors">
+      {{ i18n $allKey | default $allDefault }}
+    </a>
+    <a href="{{ "/" | relLangURL }}" class="text-fg-muted hover:text-accent transition-colors">
+      {{ i18n "back_to_home" | default "返回首页" }}
+    </a>
+  </div>
+</div>

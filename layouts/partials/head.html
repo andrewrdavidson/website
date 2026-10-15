@@ -1,0 +1,58 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ printf "%s | %s" .Title site.Title }}{{ end }}</title>
+{{ partial "social_meta.html" . }}
+{{ with site.Home.OutputFormats.Get "rss" -}}
+<link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="{{ site.Title }}">
+{{- end }}
+
+<!-- Prevent theme flash: set dark class ASAP and background color before CSS loads -->
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b1220">
+<script>
+  (function() {
+    try {
+      var t = localStorage.getItem('theme');
+      var dark = t ? (t === 'dark') : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (dark) document.documentElement.classList.add('dark');
+    } catch (_) {}
+  })();
+</script>
+<style>
+  /* Minimal pre-CSS paint to avoid white flash on dark */
+  html.dark, html.dark body { background-color: #0b1220; }
+  html { color-scheme: light; }
+  html.dark { color-scheme: dark; }
+</style>
+
+<!-- Favicon configuration. The kelrys K set lives in this repo's static/favicon/, which
+     shadows the same folder in the theme (verified: a project static/ wins for an identical
+     path). The 96x96 PNG and the SVG the theme ships are no longer referenced. -->
+<link rel="icon" type="image/png" sizes="32x32" href="{{ "favicon/favicon-32x32.png" | relURL }}" />
+<link rel="icon" type="image/png" sizes="16x16" href="{{ "favicon/favicon-16x16.png" | relURL }}" />
+<link rel="shortcut icon" href="{{ "favicon/favicon.ico" | relURL }}" />
+<link rel="apple-touch-icon" sizes="180x180" href="{{ "favicon/apple-touch-icon.png" | relURL }}" />
+<link rel="manifest" href="{{ "favicon/site.webmanifest" | relURL }}" />
+<!-- End of favicon configuration -->
+
+{{/* Render the content first so the passthrough render hook can flag pages with math. */}}
+{{ $noop := .WordCount }}
+{{ partial "head/math.html" . }}
+
+{{ if hugo.IsProduction }}
+  {{ partial "head/css.html" . }}
+  {{ partial "head/js.html" . }}
+{{ else }}
+  {{ partial "head/css.html" . }}
+  {{ partial "head/js.html" . }}
+{{ end }}
+{{/* Site JavaScript that is not part of the theme's bundle. Its own file rather than an addition
+     to the theme's js/main.js, which would mean owning a copy of that file as well (see the
+     override notes in docs/BlogIssues-Fixes.md). Minified and fingerprinted in production only,
+     like the stylesheets above. */}}
+{{ with resources.Get "js/new-badge.js" }}
+  {{ $js := . }}
+  {{ if hugo.IsProduction }}{{ $js = $js | minify | fingerprint }}{{ end }}
+<script defer src="{{ $js.RelPermalink }}"{{ if hugo.IsProduction }} integrity="{{ $js.Data.Integrity }}" crossorigin="anonymous"{{ end }}></script>
+{{ end }}
+<link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">

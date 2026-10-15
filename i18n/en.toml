@@ -1,0 +1,42 @@
+# Site overrides for theme strings.
+#
+# Hugo merges i18n bundles key by key, with this file taking precedence over
+# themes/void/i18n/en.toml. Only list the keys you actually want to change: every other
+# string still comes from the theme, so the override stays small and survives theme upgrades.
+
+# Post-list dates on /posts/ and /tags/<term>/. The theme default is "Jan 02" (no year);
+# this renders e.g. "Oct 02 2026".
+[date_month_day_format]
+other = "Jan 02 2006"
+
+# Shown on /series/ when no series exist yet.
+[series_empty]
+other = "No series yet."
+
+# "All categories" link at the foot of a category term page (/categories/<term>/, see fix #6).
+# The theme ships all_tags but no all_categories key, so without this the shared term page
+# would fall back to its Chinese default string.
+[all_categories]
+other = "All categories"
+
+# Post history table (#7). Rendered at the foot of a post only when its front matter carries
+# more than one [[history]] entry, so a single-entry post shows nothing at all.
+[post_history]
+other = "Post history"
+
+[history_version]
+other = "Version"
+
+[history_date]
+other = "Date"
+
+[history_author]
+other = "Author"
+
+[history_changes]
+other = "Changes"
+
+# "New since your last visit" chip (#28). Rendered hidden beside each card's date and revealed by
+# assets/js/new-badge.js; the templates' `default "New"` covers the case where the key is missing.
+[new_badge]
+other = "New"

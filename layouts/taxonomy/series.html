@@ -1,0 +1,63 @@
+{{ define "main" }}
+<div class="max-w-4xl mx-auto px-4 py-8">
+  <div class="mb-8 text-center">
+    <div class="text-sm text-fg-faint mb-1">{{ i18n "series" | default "Series" }}</div>
+    <h1 class="text-3xl font-bold text-fg">{{ .Title }}</h1>
+    {{/* Span of the series: its first post through its last, in reading order. */}}
+    {{ $first := (index .Pages.ByDate 0).Date }}
+    {{ $last := (index .Pages.ByDate.Reverse 0).Date }}
+    {{ $dateFormat := i18n "date_month_day_format" | default "Jan 02 2006" }}
+    <div class="text-fg-muted text-sm mt-2">
+      {{ len .Pages }} {{ i18n "articles" | default "articles" }}
+      <span class="text-fg-faint">· {{ if eq $first.Unix $last.Unix }}{{ $first.Format $dateFormat }}{{ else }}{{ $first.Format $dateFormat }} – {{ $last.Format $dateFormat }}{{ end }}</span>
+    </div>
+  </div>
+  {{/* Year groupings (#26, level R2): the same badge and hairline markup the /posts/ list uses,
+       so the two read alike.
+
+       This is the one list on the site that is not newest-first — a series is read in order, so
+       the years ascend to match the <ol> and the part numbers stay monotonic down the page.
+
+       `$numbers` is what keeps those numbers whole across the headings: a part is numbered by its
+       position in the series, not restarted inside a year. Building the map first is how a
+       template with no mutable loop state carries a value into the nested range. */}}
+  {{ $numbers := dict }}
+  {{ range $i, $p := .Pages.ByDate }}
+    {{ $numbers = $numbers | merge (dict $p.RelPermalink (add $i 1)) }}
+  {{ end }}
+  <div class="space-y-8">
+    {{ range .Pages.ByDate.GroupByDate "2006" "asc" }}
+    <div>
+      <div class="mb-6 flex items-center">
+        <div class="year-indicator-badge flex-shrink-0 w-16 h-16 rounded-full bg-gradient-to-br from-accent-soft to-accent-soft-2 flex items-center justify-center text-accent-strong font-bold text-xl shadow-sm">{{ .Key }}</div>
+        <div class="ml-4 h-px bg-gradient-to-r from-accent-line to-transparent flex-grow"></div>
+      </div>
+      <ol class="space-y-4">
+        {{ range .Pages.ByDate }}
+        <li class="relative">
+          <a href="{{ .RelPermalink }}" class="absolute inset-0 z-10" aria-label="{{ .Title }}"></a>
+          <div class="bg-surface rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 p-5 flex gap-4 group">
+            {{/* Colour comes from .series-index in assets/css/site.css: it was text-green-200
+                 (mint, and only 1.4:1 on a white card) with a text-green-400 hover. */}}
+            <div class="series-index w-8 shrink-0 text-2xl font-bold transition-colors">{{ index $numbers .RelPermalink }}</div>
+            <div class="min-w-0">
+              <h3 class="text-xl font-medium text-fg group-hover:text-accent transition-colors">{{ .Title }}</h3>
+              {{/* Was a bare `2006-01-02`, the last raw ISO date on the site while every other list
+                   used the shared format (#13). Under a year heading that also repeated the year,
+                   so it now matches /posts/, which prints the full date under its year badge too. */}}
+              <time class="text-sm text-fg-faint" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format $dateFormat }}</time>
+              {{ with partial "summary.html" . }}<p class="text-fg-muted text-sm mt-2 line-clamp-2">{{ . }}</p>{{ end }}
+            </div>
+          </div>
+        </li>
+        {{ end }}
+      </ol>
+    </div>
+    {{ end }}
+  </div>
+  <div class="mt-10 flex justify-center space-x-8">
+    <a href="{{ "series" | relURL }}" class="text-fg-muted hover:text-accent transition-colors">{{ i18n "all_series" | default "All series" }}</a>
+    <a href="{{ "/" | relLangURL }}" class="text-fg-muted hover:text-accent transition-colors">{{ i18n "back_to_home" | default "Back to Home" }}</a>
+  </div>
+</div>
+{{ end }}

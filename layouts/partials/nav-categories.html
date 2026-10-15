@@ -1,0 +1,27 @@
+{{- /*
+  The categories the header's Posts menu offers (#25): every category except Series.
+
+  Only the links are emitted here — the dropdown is opened by CSS (.nav-dropdown in
+  assets/css/site.css) on hover and on :focus-within, so the keyboard reaches these links by
+  tabbing and no JavaScript is involved. Below 40rem the same list renders inline inside the
+  hamburger panel, which is the only path touch users have to it.
+
+  Ranging the taxonomy map is deterministic — Hugo orders map ranges by key — so the order is
+  the category names, and adding a category to content is enough for it to appear here.
+
+  @context {page} The current page. Unused today, passed so call sites stay symmetrical with the
+  other partials and so a future label or highlight has something to work from.
+*/ -}}
+{{- $cats := slice }}
+{{- range $name, $weighted := site.Taxonomies.categories }}
+  {{- if ne ($name | urlize) "series" }}
+    {{- $cats = $cats | append $weighted.Page }}
+  {{- end }}
+{{- end }}
+{{- with $cats }}
+  <ul class="nav-dropdown" aria-label="{{ i18n "categories" | default "Categories" }}">
+    {{- range . }}
+    <li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
+    {{- end }}
+  </ul>
+{{- end }}

@@ -24,26 +24,37 @@
   <!-- ================= POSTS SECTION ================= -->
   <section>
     <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">My Recent Posts</h2>
+    {{/* Recent posts: the newest five, flat. The month/year heading this list used to carry
+         (#8) is gone at level (R2) of the date-grouping question (#26): grouping is year-only
+         and lives on /posts/ and the series page, so the homepage shows one ungrouped window.
+         .ByDate.Reverse comes before `first` so the window really is the five most recent. */}}
+    {{ $recent := first 5 ((where .Site.RegularPages "Section" "in" (slice "posts" "series")).ByDate.Reverse) }}
     <div class="space-y-3 mb-2">
-      {{ range (first 5 (where .Site.RegularPages "Section" "in" (slice "posts" "series"))) }}
-      <!-- Inline styles added here to force white backgrounds and rounded corners -->
-      <div class="p-6 transition-shadow duration-200" style="background-color: #ffffff; border: 1px solid #d0d2d6; border-radius: 0.25rem; ">
+      {{ range $recent }}
+      <div class="p-6 transition-shadow duration-200 bg-surface border border-line rounded">
         {{/*  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);  */}}
-          <div class="flex items-center justify-between mb-2">
-          <h3 class="text-2xl font-semibold text-gray-700">
-            {{ .Title }}
-          </h3>
-          <div class="flex items-center text-sm" style="display: flex; align-items: center; color: #6b7280;">
+        <h3 class="text-2xl font-semibold text-fg">
+          {{ .Title }}
+        </h3>
+        {{/* Date + calendar (larger) float to the left of the summary so the description text
+             wraps around them, and it sits above the chips / READ POST row (#14). The date now
+             uses the same format as the /posts/ list instead of the ordinal "Oct 6th 2026". */}}
+        <div class="mt-3 flow-root">
+          <div class="float-left mr-4 mb-1 flex items-center text-lg text-fg-2 whitespace-nowrap">
             
             
             <!-- Calendar Icon -->
-            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 1rem; height: 1rem; margin-right: 0.25rem;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 002-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-            {{ .Date.Format "Jan" }} {{ .Date.Day | humanize }} {{ .Date.Format "2006" }}
+            <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" style="width: 1.25rem; height: 1.25rem; margin-right: 0.375rem;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format (i18n "date_month_day_format" | default "Jan 02 2006") }}</time>
+            {{/* "New since your last visit" (#28). Rendered hidden and switched on by
+                 assets/js/new-badge.js from the date in data-post-date, so with JavaScript off
+                 (or storage blocked) nothing shows and the page is exactly what it is today. */}}
+            <span class="chip-new ml-2" data-post-date="{{ .Date.Format "2006-01-02" }}" hidden>{{ i18n "new_badge" | default "New" }}</span>
           </div>
+          <p class="text-fg-muted">
+            {{ .Summary | truncate 160 }}
+          </p>
         </div>
-        <p class="text-gray-600 mb-4">
-          {{ .Summary | truncate 160 }}
-        </p>
         
         {{/*  <!-- Series Badge: Warm Autumnal Terracotta -->
         <!-- Dedicated Line Block: Safely surfaces long series text labels -->
@@ -70,47 +81,31 @@
           <!-- Metadata Labels Left Side Container -->
           <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
             
-            <!-- Dynamic Categories: Emerald Theme Accent -->
+            <!-- Dynamic Categories: shared chip partial, linking to /categories/<term>/ and
+                 following the theme tokens so it flips in dark mode (#18, #15) -->
             {{ with .Params.categories }}
               {{ range . }}
-              <span class="text-xs" style="display: inline-flex; align-items: center; font-size: 0.75rem; font-weight: 500; padding: 0.25rem 0.625rem; border-radius: 0.25rem; background-color: #e6f4ea; color: #166534; border: 1px solid #a3bdab;">
-                <!-- Category Grid SVG Icon -->
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 0.85rem; height: 0.85rem; margin-right: 0.375rem;">
-                  <rect x="3" y="3" width="7" height="7"></rect>
-                  <rect x="14" y="3" width="7" height="7"></rect>
-                  <rect x="14" y="14" width="7" height="7"></rect>
-                  <rect x="3" y="14" width="7" height="7"></rect>
-                </svg>
-                {{ . }}
-              </span>
+              {{ partial "category-chip.html" . }}
               {{ end }}
             {{ end }}
 
-            <!-- Dynamic Tags: Soft Neutral Slate -->
+            <!-- Dynamic Tags: the same chip the /posts/ list uses, so the shapes, the dark-mode
+                 colours and the hover all match (#19, #23) and the tags become links (#15) -->
             {{ with .Params.tags }}
               {{ range . }}
-              <span class="text-xs" style="display: inline-flex; align-items: center; font-size: 0.75rem; font-weight: 500; padding: 0.25rem 0.625rem; border-radius: 0.25rem; background-color: #f3f4f6; color: #4b5563; border: 1px solid #e5e7eb;">
-                <!-- Price Tag SVG Icon -->
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 0.85rem; height: 0.85rem; margin-right: 0.375rem;">
-                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                  <line x1="7" y1="7" x2="7.01" y2="7"></line>
-                </svg>
-                {{ . }}
-              </span>
+              {{ partial "tag-chip.html" . }}
               {{ end }}
             {{ end }}
 
           </div>
 
-          <!-- Aligned Read More Solid Green Button -->
-          <a href="{{ .Permalink }}" style="display: inline-flex; align-items: center; font-size: 0.75rem; font-weight: 500; padding: 0.375rem 0.75rem; border-radius: 0.25rem; background-color: #16a34a; color: #ffffff; text-decoration: none; white-space: nowrap;">
-            READ POST
-          </a>
+          <!-- Aligned Read More Solid Green Button (shared with the /posts/ list) -->
+          {{ partial "read-more.html" . }}
         </div>
 
       </div>
       {{ else }}
-      <p class="text-gray-500 italic">No posts found.</p>
+      <p class="text-fg-muted italic">No posts found.</p>
       {{ end }}
     </div>
 
@@ -118,11 +113,7 @@
       {{ with .Site.GetPage "section" "posts" }}
       <!-- Wrapper to force alignment to the right edge -->
       <div style="text-align: right; margin-top: 1.5rem;">
-        <a href="{{ .Permalink }}" style="display: inline-flex; align-items: center; font-size: 0.8rem; font-weight: 400; text-transform: uppercase; padding: 0.5rem 1rem; border-radius: 0.25rem; background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; text-decoration: none; transition: all 0.2s;"
-          onmouseover="this.style.backgroundColor='#fde68a'; this.style.borderColor='#fcd34d';" 
-          onmouseout="this.style.backgroundColor='#fef3c7'; this.style.borderColor='#fde68a';">
-          View all posts &rarr;
-        </a>
+        <a href="{{ .Permalink }}" class="btn-view-all">View all posts &rarr;</a>
       </div>
       {{ end }}
     {{ end }}
@@ -133,22 +124,25 @@
   <section>
     <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">My Series</h2>
     <div class="space-y-4 mb-6">
-      {{ range $idx, $taxonomy := .Site.Taxonomies.series.ByCount }}
-      <div class="p-6 transition-shadow duration-200" style="background-color: #ffffff; border: 1px solid #d0d2d6; border-radius: 0.25rem;">
+      {{/* Newest first: order the series by their most recent post, not by post count. */}}
+      {{ $homeSeries := slice }}
+      {{ range $name, $taxonomy := .Site.Taxonomies.series }}
+        {{ $homeSeries = $homeSeries | append (dict "term" $taxonomy "latest" (index $taxonomy.Pages.ByDate.Reverse 0).Date.Unix) }}
+      {{ end }}
+      {{ range $idx, $s := sort $homeSeries "latest" "desc" }}
+      <div class="p-6 transition-shadow duration-200 bg-surface border border-line rounded">
         
         <!-- Top Row: Series Title and Interactive Toggle Pill Button -->
         <div style="display: flex; align-items: center; justify-content: space-between;">
-          <a href="{{ .Page.Permalink }}" class="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors" style="text-decoration: none;">
-            {{ .Page.Title }}
+          <a href="{{ $s.term.Page.Permalink }}" class="text-xl font-semibold text-fg hover:text-accent transition-colors" style="text-decoration: none;">
+            {{ $s.term.Page.Title }}
           </a>
           
           <!-- Pill Button containing post count and a dynamic chevron icon -->
           <button onclick="toggleSeriesList('series-list-{{ $idx }}', 'chevron-{{ $idx }}')" 
-                  style="cursor: pointer; display: inline-flex; align-items: center; font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 2px; background-color: #f7f5f2; color: #78350f; border: 1px solid #e7e1d7; transition: all 0.2s;"
-                  onmouseover="this.style.backgroundColor='#eedcd3'; this.style.borderColor='#d9c9bf';" 
-                  onmouseout="this.style.backgroundColor='#f7f5f2'; this.style.borderColor='#e7e1d7';">
+                  class="btn-series-toggle">
             <span style="margin-right: 0.375rem;">
-              Contains {{ .Count }} {{ cond (eq .Count 1) "post" "posts" }}
+              Contains {{ $s.term.Count }} {{ cond (eq $s.term.Count 1) "post" "posts" }}
             </span>
             <!-- Chevron Down SVG Icon -->
             <svg id="chevron-{{ $idx }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 0.75rem; height: 0.75rem; transform: rotate(0deg); transition: transform 0.2s ease-in-out;">
@@ -158,15 +152,15 @@
         </div>
 
         <!-- Hidden List Container -->
-        <div id="series-list-{{ $idx }}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #e5e7eb;">
+        <div id="series-list-{{ $idx }}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--line);">
           <ul style="list-style-type: none; padding-left: 0; margin: 0; space-y: 0.5rem;">
-            {{ range .Pages.ByDate }}
+            {{ range $s.term.Pages.ByDate }}
             <li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-              <a href="{{ .Permalink }}" style="color: #2563eb; font-size: 0.95rem; font-weight: 500; text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+              <a href="{{ .Permalink }}" style="color: var(--accent); font-size: 0.95rem; font-weight: 500; text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
                 {{ .Title }}
               </a>
-              <span style="font-size: 0.85rem; color: #9ca3af;">
-            {{ .Date.Format "Jan" }} {{ .Date.Day | humanize }} {{ .Date.Format "2006" }}
+              <span style="font-size: 0.85rem; color: var(--fg-dim);">
+            {{ .Date.Format (i18n "date_month_day_format" | default "Jan 02 2006") }}
               </span>
             </li>
             {{ end }}
@@ -175,7 +169,7 @@
 
       </div>
       {{ else }}
-      <p class="text-gray-500 italic">No series found.</p>
+      <p class="text-fg-muted italic">No series found.</p>
       {{ end }}
     </div>
 
@@ -183,11 +177,7 @@
     {{ if gt (len .Site.Taxonomies.series) 0 }}
       {{ with .Site.GetPage "taxonomy" "series" }}
       <div style="text-align: right; margin-top: 1.5rem;">
-        <a href="{{ .Permalink }}" style="display: inline-flex; align-items: center; font-size: 0.8rem; font-weight: 400; text-transform: uppercase; padding: 0.5rem 1rem; border-radius: 0.25rem; background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; text-decoration: none; transition: all 0.2s;"
-          onmouseover="this.style.backgroundColor='#fde68a'; this.style.borderColor='#fcd34d';" 
-          onmouseout="this.style.backgroundColor='#fef3c7'; this.style.borderColor='#fde68a';">
-          View all series &rarr;
-        </a>
+        <a href="{{ .Permalink }}" class="btn-view-all">View all series &rarr;</a>
       </div>
       {{ end }}  
     {{ end }}

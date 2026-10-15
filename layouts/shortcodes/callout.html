@@ -1,0 +1,76 @@
+{{- $type := .Get "type" | default "info" -}}
+{{- $title := .Get "title" -}}
+{{- $id := .Get "id" -}}
+{{- $rawCollapsible := .Get "collapsible" | default "false" -}}
+{{- $rawCollapsed := .Get "collapsed" | default "false" -}}
+{{- $collapsible := eq (lower $rawCollapsible) "true" -}}
+{{- $collapsed := eq (lower $rawCollapsed) "true" -}}
+{{- $content := .Inner -}}
+{{- if eq $title "" -}}
+  {{- range $m := findRESubmatch `\A[ \t]*title:\s*([^\n]+)\n(?:\n)?` $content 1 -}}
+    {{- $title = index $m 1 -}}
+    {{- $title = replaceRE `^"(.*)"$` `${1}` $title -}}
+    {{- $title = replaceRE `^'(.*)'$` `${1}` $title -}}
+    {{- $content = replaceRE `\A[ \t]*title:\s*[^\n]+\n(?:\n)?` "" $content 1 -}}
+  {{- end -}}
+{{- end -}}
+{{- $rendered := .Page.RenderString $content -}}
+{{- $rendered = replaceRE `href=["']https?://[^"']*/#([^"']+)["']` `href="#${1}"` $rendered -}}
+{{- $rendered = replaceRE `href=["']/#([^"']+)["']` `href="#${1}"` $rendered -}}
+{{- $rendered = $rendered | safeHTML -}}
+
+{{- if $collapsible -}}
+<details class="callout callout-{{ $type }} not-prose"{{ with $id }} id="{{ . }}"{{ end }}{{ if not $collapsed }} open{{ end }} style="padding: 1.25rem; border-radius: 8px; margin: 1.5rem 0;">
+  <summary class="callout-header" style="display: grid; grid-template-columns: 2.25rem 1fr; align-items: center; gap: 1rem; list-style: none; cursor: pointer;">
+{{- else -}}
+<div class="callout callout-{{ $type }} not-prose"{{ with $id }} id="{{ . }}"{{ end }} style="padding: 1.25rem; border-radius: 8px; margin: 1.5rem 0; display: grid; grid-template-columns: 2.25rem 1fr; align-items: start; gap: 0.5rem 1rem;">
+{{- end -}}
+
+  <!-- COLUMN 1: LARGE LEFT-ALIGNED ICON -->
+  <div style="grid-column: 1; display: flex; align-items: center;">
+    <span class="callout-icon" aria-hidden="true" style="display: block; flex-shrink: 0;">
+      {{- if eq $type "info" -}}
+        <i class='bx bx-badge-info' style='font-size: 2.25rem; vertical-align: middle;'></i>
+      {{- else if eq $type "tip" -}}
+        <i class='bx bx-light-bulb-alt' style='font-size: 2.25rem; vertical-align: middle;'></i>
+      {{- else if eq $type "warning" -}}
+        <i class='bx bx-siren-alt' style='font-size: 2.25rem; vertical-align: middle;'></i>
+      {{- else if eq $type "danger" -}}
+        <i class='bxf bx-alert-triangle' style='font-size: 2.25rem; vertical-align: middle;'></i>
+      {{- else if eq $type "note" -}}
+        <i class='bx bx-pin' style='font-size: 2.25rem; vertical-align: middle;'></i>
+      {{- else if eq $type "idea" -}}
+        <i class='bx bx-light-bulb' style='font-size: 2.25rem; vertical-align: middle;'></i>
+      {{- else if eq $type "thought" -}}
+        <i class='bx bx-thought-bubble' style='font-size: 2.25rem; vertical-align: middle;'></i>
+      {{- else -}}
+        <i class='bx bx-message' style='font-size: 2.25rem; vertical-align: middle;'></i>
+      {{- end -}}
+    </span>
+  </div>
+
+  <!-- COLUMN 2: TITLE & RIGHT-ALIGNED STACKED CONTENT -->
+  <div style="grid-column: 2; display: flex; flex-direction: column; gap: 0.5rem; width: 100%;">
+    {{- with $title -}}
+      <span class="callout-title" style="font-size: 1.25rem; font-weight: 700; line-height: 1.2;">
+        {{ $.Page.RenderString (dict "display" "inline") . }}
+      </span>
+    {{- end -}}
+    
+    {{- if not $collapsible -}}
+      <div class="callout-content prose prose-sm sm:prose max-w-none" style="margin-top: 0.25rem;">
+        {{- $rendered -}}
+      </div>
+    {{- end -}}
+  </div>
+
+{{- if $collapsible -}}
+  </summary>
+  <!-- DROPDOWN CONTENT PANEL FOR COLLAPSIBLE ENTRIES -->
+  <div class="callout-content prose prose-sm sm:prose max-w-none" style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed rgba(0,0,0,0.08); padding-left: 3.25rem;">
+    {{- $rendered -}}
+  </div>
+</details>
+{{- else -}}
+</div>
+{{- end -}}

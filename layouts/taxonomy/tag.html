@@ -1,0 +1,6 @@
+{{ define "main" }}
+  {{/* Tag term page. The body lives in partials/term-page.html, shared with the category term
+       page (layouts/taxonomy/category.html), so the two can only differ by the values passed
+       below — tag chips with the current tag picked out, on /tags/<term>/. */}}
+  {{ partial "term-page.html" (dict "page" . "taxonomy" "tags" "chip" "tag-chip.html") }}
+{{ end }}

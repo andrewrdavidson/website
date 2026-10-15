@@ -1,0 +1,9 @@
+{{- /* Solid green read-more button, right-aligned at the end of a post card's action row.
+
+       Call with the post page as context:  {{ partial "read-more.html" . }}
+
+       Shared by layouts/index.html (homepage cards) and layouts/_default/list.html
+       (/posts/) so the two lists cannot drift apart. Colours live in assets/css/site.css
+       (.btn-read-more) so light mode is unchanged and dark mode has a variant of its own;
+       an inline style could not carry one. See fix #20. */ -}}
+<a href="{{ .Permalink }}" class="btn-read-more">READ POST</a>

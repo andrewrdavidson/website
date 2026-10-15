@@ -1,0 +1,11 @@
+{{ define "main" }}
+  {{/* Category term page. Hugo looks for layouts/taxonomy/category.html before falling back to
+       layouts/_default/list.html, and the theme only ships category.terms.html (the /categories/
+       index) — so without this file every category term page rendered the /posts/ listing under
+       its own title: 18 cards for a category holding 8 or 10. See fix #6 in
+       docs/BlogIssues-Fixes.md.
+
+       Same shared body as the tag term page; `taxonomy` drives the URL base, the front-matter
+       key whose terms are listed on each card, and the icon and "All categories" link. */}}
+  {{ partial "term-page.html" (dict "page" . "taxonomy" "categories" "chip" "category-chip.html") }}
+{{ end }}

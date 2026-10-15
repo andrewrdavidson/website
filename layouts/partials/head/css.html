@@ -1,0 +1,44 @@
+{{ with (templates.Defer (dict "key" "global")) }}
+  {{ with resources.Get "css/main.css" }}
+    {{ $opts := dict
+      "minify" hugo.IsProduction
+      "inlineImports" true
+    }}
+    {{ with . | css.TailwindCSS $opts }}
+      {{ if hugo.IsProduction }}
+        {{ with . | fingerprint }}
+          <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" crossorigin="anonymous">
+        {{ end }}
+      {{ else }}
+        <link rel="stylesheet" href="{{ .RelPermalink }}?v={{ now.Unix }}">
+      {{ end }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+
+{{/* Site-level overrides (this repo's assets/css/site.css), linked immediately after the
+     theme stylesheet so it wins on equal specificity and can retarget the theme's tokens.
+     Kept out of the theme so themes/void stays a pristine, upgradeable mirror. */}}
+{{ with resources.Get "css/site.css" }}
+  {{ $site := . }}
+  {{ if hugo.IsProduction }}{{ $site = $site | minify | fingerprint }}{{ end }}
+<link rel="stylesheet" href="{{ $site.RelPermalink }}"{{ if hugo.IsProduction }} integrity="{{ $site.Data.Integrity }}" crossorigin="anonymous"{{ end }}>
+{{ end }}
+
+{{/* Fonts are self-hosted under static/fonts/ and declared in assets/css/fonts/*.css.
+     Latin faces are part of main.css; preload the body face. The CJK face declaration
+     (~200 unicode-range slices, ~60 KB gzipped) is loaded without blocking first paint:
+     text shows in the system CJK font and swaps once the needed slices arrive. */}}
+<link rel="preload" href="{{ "fonts/source-serif-4-400.woff2" | relURL }}" as="font" type="font/woff2" crossorigin>
+{{ with resources.Get "css/fonts/noto-serif-sc.css" }}
+  {{ $cjk := . }}
+  {{ if hugo.IsProduction }}{{ $cjk = $cjk | minify | fingerprint }}{{ end }}
+<link rel="stylesheet" href="{{ $cjk.RelPermalink }}" media="print" onload="this.media='all'"{{ if hugo.IsProduction }} integrity="{{ $cjk.Data.Integrity }}" crossorigin="anonymous"{{ end }}>
+<noscript><link rel="stylesheet" href="{{ $cjk.RelPermalink }}"></noscript>
+{{ end }}
+<!-- Basic Icons -->
+<link href="https://cdn.boxicons.com/3.0.8/fonts/basic/boxicons.min.css" rel="stylesheet">
+<!-- Filled Icons -->
+<link href="https://cdn.boxicons.com/3.0.8/fonts/filled/boxicons-filled.min.css" rel="stylesheet">
+<!-- Brand Icons -->
+<link href="https://cdn.boxicons.com/3.0.8/fonts/brands/boxicons-brands.min.css" rel="stylesheet">
