@@ -26,19 +26,32 @@
 {{ end }}
 
 {{/* Fonts are self-hosted under static/fonts/ and declared in assets/css/fonts/*.css.
-     Latin faces are part of main.css; preload the body face. The CJK face declaration
-     (~200 unicode-range slices, ~60 KB gzipped) is loaded without blocking first paint:
-     text shows in the system CJK font and swaps once the needed slices arrive. */}}
+     Latin faces are part of main.css; preload the body face.
+
+     The CJK face was removed on 2026-10-15: `css/fonts/noto-serif-sc.css` (~200 unicode-range
+     slices, ~205 KB, plus a 41 KB slice fetched on every page once the sheet applied) used to be
+     loaded here, deferred behind media="print" + `data-defer-stylesheet`. It was the single
+     largest asset on every page of a site with no CJK content, and — measured in Chromium — over
+     half the homepage's bytes. The site has never had Chinese content and never will, so the
+     sheet, the `Noto Serif SC` families in `--font-bilingual` (assets/css/site.css) and the
+     6.6 MB of `noto-serif-sc/` slices under the theme's `static/` all went — the slices are
+     deleted from the build output by `npm run prune` (tools/prune-artifact.mjs), not by Hugo's
+     mounts, which were tried and reverted (see the note at the foot of hugo.toml). There is no
+     `data-defer-stylesheet` anywhere now, which is why assets/js/head-init.js no longer looks
+     for one.
+
+     Do not reinstate a CJK face without content that needs it: preload/the-first-paint argument
+     aside, the sheet alone cost more than the rest of the page. */}}
 <link rel="preload" href="{{ "fonts/source-serif-4-400.woff2" | relURL }}" as="font" type="font/woff2" crossorigin>
-{{ with resources.Get "css/fonts/noto-serif-sc.css" }}
-  {{ $cjk := . }}
-  {{ if hugo.IsProduction }}{{ $cjk = $cjk | minify | fingerprint }}{{ end }}
-<link rel="stylesheet" href="{{ $cjk.RelPermalink }}" media="print" onload="this.media='all'"{{ if hugo.IsProduction }} integrity="{{ $cjk.Data.Integrity }}" crossorigin="anonymous"{{ end }}>
-<noscript><link rel="stylesheet" href="{{ $cjk.RelPermalink }}"></noscript>
-{{ end }}
-<!-- Basic Icons -->
-<link href="https://cdn.boxicons.com/3.0.8/fonts/basic/boxicons.min.css" rel="stylesheet">
-<!-- Filled Icons -->
-<link href="https://cdn.boxicons.com/3.0.8/fonts/filled/boxicons-filled.min.css" rel="stylesheet">
-<!-- Brand Icons -->
-<link href="https://cdn.boxicons.com/3.0.8/fonts/brands/boxicons-brands.min.css" rel="stylesheet">
+
+{{/* The three Boxicons stylesheets are gone (#36). The site used eight glyphs from them — all
+     eight in layouts/shortcodes/callout.html — and paid for them with three cross-origin
+     stylesheets plus their font files on every page load, a third-party origin the
+     Content-Security-Policy had to allow, and an SRI hash that could only ever cover the CSS and
+     not the fonts it fetched. Those glyphs are now vendored SVGs under assets/icons/boxicons/,
+     inlined by layouts/partials/icon.html.
+
+     Do not reintroduce a CDN here: an icon font bought eight glyphs at the price of the page's
+     last third-party origin. If a new icon is needed, add one file to that directory — see the
+     README beside it. */}}
+

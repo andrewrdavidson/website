@@ -3,18 +3,20 @@
 
   <!-- ================= HERO SECTION ================= -->
   <section class="py-8 border-b border-gray-100 dark:border-gray-800">
-    <!-- Changed container from max-w-3xl to max-w-4xl and added mx-auto for centering -->
     <div class="max-w-4xl mx-auto">
-      <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl mb-6">
-        Welcome to My Blog Space: 
+      <h1 class="text-4xl font-extrabold tracking-tight text-fg-strong sm:text-5xl mb-6">
+        Welcome to My Blog Space:
       </h1>
-      <p class="text-3xl text-gray-800 dark:text-gray-300 leading-relaxed py-6">
+      <p class="text-3xl text-fg leading-relaxed py-6">
         Where I use DevOps to build stuff that works...*
       </p>
-      <p class="text-xl text-gray-600 dark:text-gray-300 leading-relaxed py-2">
+      <p class="text-xl text-fg-2 leading-relaxed py-2">
         Here, I will be writing about lots of different topics, including dev ops, web development, software engineering, scripting, automation, and document my learning journeys through structured series and handy tips. Explore my recent thoughts below!
       </p>
-      <p class="text-xs text-gray-400 dark:text-gray-300 leading-relaxed">
+      {{/* Was `text-gray-400 dark:text-gray-300`: a hard-coded Tailwind grey at 2.5:1 on the
+           canvas, and the only text on the site outside the token palette. The accessibility
+           pass failed the homepage on it the day it was added. */}}
+      <p class="text-xs text-fg-muted leading-relaxed">
         * for any reasonable definition of "works" - I don't guarantee that it will work for you, but it works for me. If you find something that doesn't work, please let me know!
       </p>
     </div>
@@ -23,7 +25,7 @@
 
   <!-- ================= POSTS SECTION ================= -->
   <section>
-    <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">My Recent Posts</h2>
+    <h2 class="text-2xl font-bold mb-6 text-fg-strong">My Recent Posts</h2>
     {{/* Recent posts: the newest five, flat. The month/year heading this list used to carry
          (#8) is gone at level (R2) of the date-grouping question (#26): grouping is year-only
          and lives on /posts/ and the series page, so the homepage shows one ungrouped window.
@@ -31,82 +33,10 @@
     {{ $recent := first 5 ((where .Site.RegularPages "Section" "in" (slice "posts" "series")).ByDate.Reverse) }}
     <div class="space-y-3 mb-2">
       {{ range $recent }}
-      {{/* Cards highlight their border on hover, the same green the /posts/ and term-page cards
-           use (#29 follow-up): `hover:border-accent-line` needs a border-colour transition, so
-           `transition-shadow` becomes `transition` — otherwise the outline snaps. */}}
-      <div class="p-6 transition duration-200 bg-surface border border-line hover:border-accent-line rounded">
-        {{/*  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);  */}}
-        <h3 class="text-2xl font-semibold text-fg">
-          {{ .Title }}
-        </h3>
-        {{/* Date + calendar (larger) float to the left of the summary so the description text
-             wraps around them, and it sits above the chips / READ POST row (#14). The date now
-             uses the same format as the /posts/ list instead of the ordinal "Oct 6th 2026". */}}
-        <div class="mt-3 flow-root">
-          <div class="float-left mr-4 mb-1 flex items-center text-lg text-fg-2 whitespace-nowrap">
-            
-            
-            <!-- Calendar Icon -->
-            <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" style="width: 1.25rem; height: 1.25rem; margin-right: 0.375rem;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-            <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format (i18n "date_month_day_format" | default "Jan 02 2006") }}</time>
-            {{/* "New since your last visit" (#28). Rendered hidden and switched on by
-                 assets/js/new-badge.js from the date in data-post-date, so with JavaScript off
-                 (or storage blocked) nothing shows and the page is exactly what it is today. */}}
-            <span class="chip-new ml-2" data-post-date="{{ .Date.Format "2006-01-02" }}" hidden>{{ i18n "new_badge" | default "New" }}</span>
-          </div>
-          <p class="text-fg-muted">
-            {{ .Summary | truncate 160 }}
-          </p>
-        </div>
-        
-        {{/*  <!-- Series Badge: Warm Autumnal Terracotta -->
-        <!-- Dedicated Line Block: Safely surfaces long series text labels -->
-        {{ if .Params.series }}
-        <div style="margin-bottom: 0.75rem; display: block;">
-          <span style="display: inline-block; font-size: 0.75rem; font-weight: 400; padding: 0.25rem 0.5rem; border-radius: 0.15rem; background-color: #f7f5f2; color: #78350f; border: 1px solid #e7e1d7; max-w: 100%; line-height: 1.4;">
-            This post is part of the series: 
-            
-            {{ $seriesName := .Params.series }}
-            {{ with $.Site.GetPage (printf "series/%s" ($seriesName | urlize)) }}
-              <a href="{{ .Permalink }}" style="color: #78350f; text-decoration: underline; font-weight: 500; margin-left: 0.25rem; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-                {{ $seriesName }}
-              </a>
-            {{ else }}
-              <span style="margin-left: 0.25rem;">{{ $seriesName }}</span>
-            {{ end }}
-          </span>
-        </div>
-        {{ end }}  */}}
-
-        <!-- FLEX CONTAINER FOR ALIGNING ITEMS TO THE RIGHT -->
-        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-top: 1.25rem;">
-          
-          <!-- Metadata Labels Left Side Container -->
-          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
-            
-            <!-- Dynamic Categories: shared chip partial, linking to /categories/<term>/ and
-                 following the theme tokens so it flips in dark mode (#18, #15) -->
-            {{ with .Params.categories }}
-              {{ range . }}
-              {{ partial "category-chip.html" . }}
-              {{ end }}
-            {{ end }}
-
-            <!-- Dynamic Tags: the same chip the /posts/ list uses, so the shapes, the dark-mode
-                 colours and the hover all match (#19, #23) and the tags become links (#15) -->
-            {{ with .Params.tags }}
-              {{ range . }}
-              {{ partial "tag-chip.html" . }}
-              {{ end }}
-            {{ end }}
-
-          </div>
-
-          <!-- Aligned Read More Solid Green Button (shared with the /posts/ list) -->
-          {{ partial "read-more.html" . }}
-        </div>
-
-      </div>
+      {{/* The same card /posts/ and the category and tag pages render, from one partial:
+           full-cover link so the whole box is clickable, and `group-hover` so the border turns
+           green wherever the pointer sits inside it (#32, #33). */}}
+      {{ partial "post-card.html" (dict "page" .) }}
       {{ else }}
       <p class="text-fg-muted italic">No posts found.</p>
       {{ end }}
@@ -115,7 +45,7 @@
     {{ if gt (len (where .Site.RegularPages "Section" "in" (slice "posts" "series"))) 0 }}
       {{ with .Site.GetPage "section" "posts" }}
       <!-- Wrapper to force alignment to the right edge -->
-      <div style="text-align: right; margin-top: 1.5rem;">
+      <div class="text-right mt-6">
         <a href="{{ .Permalink }}" class="btn-view-all">View all posts &rarr;</a>
       </div>
       {{ end }}
@@ -125,53 +55,59 @@
 
   <!-- ================= SERIES SECTION ================= -->
   <section>
-    <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-white">My Series</h2>
+    <h2 class="text-2xl font-bold mb-6 text-fg-strong">My Series</h2>
     <div class="space-y-4 mb-6">
       {{/* Newest first: order the series by their most recent post, not by post count. */}}
       {{ $homeSeries := slice }}
       {{ range $name, $taxonomy := .Site.Taxonomies.series }}
         {{ $homeSeries = $homeSeries | append (dict "term" $taxonomy "latest" (index $taxonomy.Pages.ByDate.Reverse 0).Date.Unix) }}
       {{ end }}
-      {{ range $idx, $s := sort $homeSeries "latest" "desc" }}
-      {{/* Cards highlight their border on hover, the same green the /posts/ and term-page cards
-           use (#29 follow-up): `hover:border-accent-line` needs a border-colour transition, so
+      {{ range $s := sort $homeSeries "latest" "desc" }}
+      {{/* Cards highlight their border on hover, the same green the post cards use (#29
+           follow-up): `hover:border-accent-line` needs a border-colour transition, so
            `transition-shadow` becomes `transition` — otherwise the outline snaps. */}}
       <div class="p-6 transition duration-200 bg-surface border border-line hover:border-accent-line rounded">
-        
-        <!-- Top Row: Series Title and Interactive Toggle Pill Button -->
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-          <a href="{{ $s.term.Page.Permalink }}" class="text-xl font-semibold text-fg hover:text-accent transition-colors" style="text-decoration: none;">
-            {{ $s.term.Page.Title }}
-          </a>
-          
-          <!-- Pill Button containing post count and a dynamic chevron icon -->
-          <button onclick="toggleSeriesList('series-list-{{ $idx }}', 'chevron-{{ $idx }}')" 
-                  class="btn-series-toggle">
-            <span style="margin-right: 0.375rem;">
-              Contains {{ $s.term.Count }} {{ cond (eq $s.term.Count 1) "post" "posts" }}
-            </span>
-            <!-- Chevron Down SVG Icon -->
-            <svg id="chevron-{{ $idx }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 0.75rem; height: 0.75rem; transform: rotate(0deg); transition: transform 0.2s ease-in-out;">
+
+        {{/* Series name, then the parts behind a native <details> disclosure (#36).
+
+             What this replaced, and why it does not come back: the name sat beside a <button>
+             whose opening worked by calling an inline `toggleSeriesList(...)` function, and the
+             part list was a div the script flipped between `display:none` and `display:block`.
+             That needed an inline <script> plus an inline onclick, and the site now ships a
+             Content-Security-Policy with no 'unsafe-inline' in `script-src`, so both were
+             blocked. <details>/<summary> is the same disclosure with no JavaScript at all: it is
+             keyboard operable, it announces its own expanded state, and it still works when the
+             script that would have driven it never loads.
+
+             The chevron rotation and the part-list styling are in assets/css/site.css
+             (.series-disclosure, .series-parts) because the open/closed state is a CSS
+             attribute selector on the parent.
+
+             The heading level is deliberate: the homepage's sections are <h2> and a series name
+             is the title of one of its cards, so it is an <h3> — the same relationship the
+             homepage's post cards have under "My Recent Posts". */}}
+        <h3 class="text-xl font-semibold text-fg">
+          <a href="{{ $s.term.Page.Permalink }}" class="no-underline text-fg hover:text-accent transition-colors">{{ $s.term.Page.Title }}</a>
+        </h3>
+
+        <details class="series-disclosure mt-3">
+          <summary class="btn-series-toggle">
+            <span>Contains {{ $s.term.Count }} {{ cond (eq $s.term.Count 1) "post" "posts" }}</span>
+            <svg class="series-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
-          </button>
-        </div>
-
-        <!-- Hidden List Container -->
-        <div id="series-list-{{ $idx }}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--line);">
-          <ul style="list-style-type: none; padding-left: 0; margin: 0; space-y: 0.5rem;">
+          </summary>
+          <ul class="series-parts">
             {{ range $s.term.Pages.ByDate }}
-            <li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-              <a href="{{ .Permalink }}" style="color: var(--accent); font-size: 0.95rem; font-weight: 500; text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
-                {{ .Title }}
-              </a>
-              <span style="font-size: 0.85rem; color: var(--fg-dim);">
-            {{ .Date.Format (i18n "date_month_day_format" | default "Jan 02 2006") }}
+            <li>
+              <a href="{{ .Permalink }}">{{ .Title }}</a>
+              <span class="text-sm text-fg-dim">
+                {{ .Date.Format (i18n "date_month_day_format" | default "Jan 02 2006") }}
               </span>
             </li>
             {{ end }}
           </ul>
-        </div>
+        </details>
 
       </div>
       {{ else }}
@@ -182,31 +118,12 @@
     <!-- Right-aligned 'View all series' container button -->
     {{ if gt (len .Site.Taxonomies.series) 0 }}
       {{ with .Site.GetPage "taxonomy" "series" }}
-      <div style="text-align: right; margin-top: 1.5rem;">
+      <div class="text-right mt-6">
         <a href="{{ .Permalink }}" class="btn-view-all">View all series &rarr;</a>
       </div>
-      {{ end }}  
+      {{ end }}
     {{ end }}
   </section>
-
-  <!-- ================= TOGGLE SCRIPT ================= -->
-  <script>
-    function toggleSeriesList(listId, chevronId) {
-      var listContainer = document.getElementById(listId);
-      var chevronIcon = document.getElementById(chevronId);
-      
-      if (listContainer.style.display === "none") {
-        listContainer.style.display = "block";
-        // Rotates chevron 180 degrees to point upwards when open
-        chevronIcon.style.transform = "rotate(180deg)";
-      } else {
-        listContainer.style.display = "none";
-        // Resets chevron to 0 degrees to point downwards when closed
-        chevronIcon.style.transform = "rotate(0deg)";
-      }
-    }
-  </script>
-
 
 </div>
 {{ end }}

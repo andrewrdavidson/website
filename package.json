@@ -1,5 +1,31 @@
 {
+  "name": "kelrys-website",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Source for kelrys.com — a Hugo blog built with Tailwind CSS v4 and deployed to GitHub Pages.",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "hugo server --buildDrafts --buildFuture --disableFastRender --renderToMemory --port 1313",
+    "build": "hugo --gc --minify --cleanDestinationDir && npm run prune",
+    "build:drafts": "hugo --gc --minify --buildDrafts --buildFuture --cleanDestinationDir && npm run prune",
+    "prune": "node tools/prune-artifact.mjs",
+    "search": "pagefind --site public --output-subdir pagefind --force-language en-GB",
+    "og:image": "node tools/make-og-image.mjs",
+    "preview": "node tests/static-server.mjs public 8081",
+    "check:html": "node tests/check-html.mjs public",
+    "test:prepare": "hugo --gc --minify --cleanDestinationDir --buildDrafts --buildFuture --baseURL http://localhost:8081/ && npm run search && npm run prune",
+    "test": "playwright test",
+    "test:install": "playwright install chromium",
+    "test:install:ci": "playwright install --with-deps chromium",
+    "test:report": "playwright show-report",
+    "clean": "rm -rf public resources/_gen hugo_stats.json"
+  },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/cli": "^4.3.3",
     "pagefind": "^1.5.2",
     "tailwindcss": "^4.3.3"

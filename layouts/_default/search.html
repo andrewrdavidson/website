@@ -1,0 +1,33 @@
+{{ define "main" }}
+{{- /*
+  Site search powered by Pagefind (https://pagefind.app). The index is generated after the Hugo
+  build (see the site's CI: `npm run search`), so it does not exist in a plain `hugo server`
+  session; the page then shows a notice instead.
+
+  This is an override of themes/void/layouts/_default/search.html. The markup and behaviour are
+  the theme's; the difference is that the theme keeps the Pagefind initialisation in an inline
+  <script> and hangs an `onerror` attribute off the bundle's <script> tag, and the site's
+  Content-Security-Policy (layouts/partials/head.html) has no 'unsafe-inline' in `script-src`,
+  so both were blocked and the page could never have worked as deployed (#36).
+
+  The init lives in assets/js/search.js and reads the four UI strings from the data attributes
+  below, which are rendered from i18n. The `onerror` fallback is gone rather than replaced: the
+  script's own `typeof PagefindUI === 'undefined'` check covers a bundle that failed to load,
+  which is the case `onerror` existed for. */
+-}}
+<div class="max-w-3xl mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-center text-fg mb-8">{{ .Title }}</h1>
+  <link rel="stylesheet" href="{{ "pagefind/pagefind-ui.css" | relURL }}">
+  <div id="search"
+       class="pagefind-box"
+       data-placeholder="{{ i18n "search_placeholder" | default "Search..." }}"
+       data-zero-results="{{ i18n "search_zero_results" | default "No results for [SEARCH_TERM]" }}"
+       data-clear-search="{{ i18n "search_clear" | default "Clear" }}"
+       data-load-more="{{ i18n "search_load_more" | default "Load more results" }}"></div>
+  <p id="search-unavailable" class="hidden text-center text-sm text-fg-faint mt-6">
+    {{ i18n "search_unavailable" | default "The search index is generated at deploy time and is not available in this build." }}
+  </p>
+  <script src="{{ "pagefind/pagefind-ui.js" | relURL }}"></script>
+  {{ partial "site-js.html" (dict "path" "js/search.js" "defer" true) }}
+</div>
+{{ end }}

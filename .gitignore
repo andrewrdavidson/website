@@ -16,7 +16,12 @@ hugo.linux
 # node modules
 node_modules/
 
-# development process logs (temporary files)
-.tmp-devserver.log
-.tmp-verify-server.log
-.tmp-search/
+# Playwright: failure traces and the HTML report
+test-results/
+playwright-report/
+
+# Development scratch: dev-server and verification logs, throwaway probe scripts, and the
+# .tmp-search/ helper an early session used. One pattern rather than a list of the files that
+# happened to exist when this was written.
+.tmp-*
+.freebuff/

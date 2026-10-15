@@ -1,23 +1,66 @@
 <meta charset="utf-8">
+{{- /* Content-Security-Policy.
+       A meta tag is the only place this can live: GitHub Pages (actions/deploy-pages) serves
+       static files and cannot set response headers, so there is no mechanism for a real CSP
+       header, and none for X-Frame-Options, X-Content-Type-Options or Permissions-Policy
+       either. Everything a static host *cannot* express that way is missing on purpose:
+       frame-ancestors, report-uri/report-to and sandbox are header-only directives, and a meta
+       CSP blocks nothing at all if the whole document is framed — that is a hosting-level gap,
+       not an oversight here.
+
+       Each origin earns its place, and this list is the site's complete third-party surface —
+       which is now a single origin plus one allowance:
+
+         script-src 'self'         our own bundles, hashed with integrity (see partials/site-js.html)
+                    https://giscus.app  the comment thread's client.js
+                    'wasm-unsafe-eval'  Pagefind's index is WebAssembly; without this the search
+                                        page loads its UI and never returns a result
+         style-src  'self'          theme + site stylesheets
+                    'unsafe-inline'  the templates use `style=` attributes in places (and the
+                                     pre-CSS paint block in this file); dropping this would strip
+                                     them, so it is declared rather than silently relied upon.
+                    https://giscus.app  giscus's client injects its own stylesheet into the host
+                                     page for the loading state. Confirmed by the console:
+                                     giscus@default.css arrives as a <link> *here*, not inside
+                                     the frame, so the frame's own policy does not cover it.
+                                     (This is why style-src still names a third party. The icon
+                                     CDN that used to be here is gone — its eight glyphs are
+                                     vendored SVGs, #36, assets/icons/boxicons/.)
+         font-src   'self'          every face is self-hosted, text and icons alike
+         img-src    'self' data:    the logo, content images and the inline-icon fallbacks
+         connect-src 'self' https://giscus.app   Pagefind fetches its index from this origin;
+                                     giscus's client fetches discussion metadata from its own
+         frame-src  https://giscus.app   the comment thread is an iframe
+         worker-src 'self' blob:    Pagefind runs its search in a worker built from a blob URL
+         form-action 'self'         no form may post anywhere else
+         base-uri 'self'            an injected <base> cannot rewrite every relative URL
+
+       Order matters: a meta CSP only governs what is fetched after it is parsed, so this sits
+       immediately after <meta charset> and ahead of the scripts and stylesheets. If a change
+       here breaks something, the browser console names the blocked URL and the directive that
+       refused it — do not widen the policy to 'unsafe-inline' in script-src to fix a symptom. */ -}}
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' https://giscus.app 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://giscus.app; font-src 'self'; img-src 'self' data:; connect-src 'self' https://giscus.app; frame-src https://giscus.app; worker-src 'self' blob:">
+{{- /* Referrer-Policy is settable in a meta tag (unlike frame-ancestors), and it is also the one
+       policy that is worth having even when nothing else is: without it, following any outbound
+       link from a post tells the destination which page the reader came from. */ -}}
+
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ printf "%s | %s" .Title site.Title }}{{ end }}</title>
-{{ partial "social_meta.html" . }}
+{{/* Site-owned: the theme's social_meta.html hardcoded og:locale as en_US. See the partial's
+     header comment and "./docs/BlogIssues-Fixes.md" — do not switch this back. */}}
+{{ partial "social-meta.html" . }}
 {{ with site.Home.OutputFormats.Get "rss" -}}
 <link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="{{ site.Title }}">
 {{- end }}
 
-<!-- Prevent theme flash: set dark class ASAP and background color before CSS loads -->
+<!-- Prevent theme flash: set the dark class and background colour before the CSS loads.
+     The script is a file, not an inline block, because script-src above has no
+     'unsafe-inline' (assets/js/head-init.js). The style block stays inline: it has to be
+     parsed before the deferred stylesheets arrive, and style-src already permits it. -->
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b1220">
-<script>
-  (function() {
-    try {
-      var t = localStorage.getItem('theme');
-      var dark = t ? (t === 'dark') : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      if (dark) document.documentElement.classList.add('dark');
-    } catch (_) {}
-  })();
-</script>
+{{ partial "site-js.html" (dict "path" "js/head-init.js") }}
 <style>
   /* Minimal pre-CSS paint to avoid white flash on dark */
   html.dark, html.dark body { background-color: #0b1220; }
@@ -25,9 +68,13 @@
   html.dark { color-scheme: dark; }
 </style>
 
-<!-- Favicon configuration. The kelrys K set lives in this repo's static/favicon/, which
-     shadows the same folder in the theme (verified: a project static/ wins for an identical
-     path). The 96x96 PNG and the SVG the theme ships are no longer referenced. -->
+<!-- Favicon configuration. The kelrys K set lives in this repo's static/favicon/, which shadows
+     the same folder in the theme (verified: a project static/ wins for an identical path). The
+     four theme icons nothing here references — 96x96, the 103 KB SVG, and the two
+     web-app-manifest PNGs — are still copied by Hugo and then deleted from the build output by
+     `npm run prune` (tools/prune-artifact.mjs), with tests/check-html.mjs failing if they
+     reappear. Not filtered in Hugo's configuration on purpose: see the note at the foot of
+     hugo.toml for what a [[module.mounts]] rewrite cost the home page. -->
 <link rel="icon" type="image/png" sizes="32x32" href="{{ "favicon/favicon-32x32.png" | relURL }}" />
 <link rel="icon" type="image/png" sizes="16x16" href="{{ "favicon/favicon-16x16.png" | relURL }}" />
 <link rel="shortcut icon" href="{{ "favicon/favicon.ico" | relURL }}" />
@@ -39,22 +86,12 @@
 {{ $noop := .WordCount }}
 {{ partial "head/math.html" . }}
 
-{{ if hugo.IsProduction }}
-  {{ partial "head/css.html" . }}
-  {{ partial "head/js.html" . }}
-{{ else }}
-  {{ partial "head/css.html" . }}
-  {{ partial "head/js.html" . }}
-{{ end }}
+{{ partial "head/css.html" . }}
+{{ partial "head/js.html" . }}
 {{/* Site JavaScript that is not part of the theme's bundle. Its own file rather than an addition
      to the theme's js/main.js, which would mean owning a copy of that file as well (see the
-     override notes in docs/BlogIssues-Fixes.md). Minified and fingerprinted in production only,
-     like the stylesheets above. */}}
-{{ with resources.Get "js/new-badge.js" }}
-  {{ $js := . }}
-  {{ if hugo.IsProduction }}{{ $js = $js | minify | fingerprint }}{{ end }}
-<script defer src="{{ $js.RelPermalink }}"{{ if hugo.IsProduction }} integrity="{{ $js.Data.Integrity }}" crossorigin="anonymous"{{ end }}></script>
-{{ end }}
+     override notes in docs/BlogIssues-Fixes.md). */}}
+{{ partial "site-js.html" (dict "path" "js/new-badge.js" "defer" true) }}
 {{/* Boxicons used to be loaded a second time here, from unpkg 2.1.4. The three
      cdn.boxicons.com stylesheets in layouts/partials/head/css.html already define every icon
      class this site uses (all eight in shortcodes/callout.html) — the unpkg 2.1.4 sheet

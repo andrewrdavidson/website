@@ -222,7 +222,7 @@
         {{ end }}
       </nav>
       {{ end }}  */}}
-
+      
       <!-- 返回按钮 -->
       <div class="mt-6 flex justify-center">
         <a href="{{ "/" | relLangURL }}" class="inline-flex items-center text-fg-muted hover:text-accent transition-colors">
@@ -233,7 +233,8 @@
         </a>
       </div>
     </div>
-    </footer>
+  </footer>
+  {{ partial "comments.html" . }}
   </article>
 
   <!-- 使用懒加载Disqus评论 -->
@@ -250,6 +251,8 @@
     </div>
   </aside>
   {{ end }}
-</div>{{/* .article-layout */}}
+
+</div>
+{{/* .article-layout */}}
   {{/*  {{ if hugo.IsDevelopment }}{{ partial "dev/typo-panel.html" . }}{{ end }}  */}}
   {{ end }}

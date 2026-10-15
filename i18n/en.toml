@@ -40,3 +40,9 @@ other = "Changes"
 # assets/js/new-badge.js; the templates' `default "New"` covers the case where the key is missing.
 [new_badge]
 other = "New"
+
+# Heading above the giscus thread at the foot of a post (#34). The theme ships no comments
+# heading at all — the thread just appeared — so the key lives here; the template's
+# `default "Discuss…"` still covers a missing key.
+[comments_heading]
+other = "Discuss…"

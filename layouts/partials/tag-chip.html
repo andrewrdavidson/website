@@ -15,7 +15,15 @@
 
        The caller must place this inside a container that sits above the card's
        full-cover anchor link (class "relative z-20" in layouts/_default/list.html),
-       otherwise the chip is painted underneath it and cannot be clicked. */ -}}
+       otherwise the chip is painted underneath it and cannot be clicked.
+
+       This chip used to carry `onclick="event.stopPropagation();"`, a leftover from when it
+       was nested inside the card's link: there it stopped the card from also navigating. The
+       chip and the card's full-cover anchor are siblings now, so a click on one never reaches
+       the other and the handler had nothing left to do — while still being an inline event
+       handler, which the Content-Security-Policy (layouts/partials/head.html) refuses. Removed
+       in #36. If a future layout nests this chip inside a link, do not re-add a handler: make
+       the chip a sibling again, or the card's link will swallow the chip. */ -}}
 {{- $term := . -}}
 {{- $current := false -}}
 {{- if reflect.IsMap . -}}
@@ -27,8 +35,7 @@
    class="tag-chip text-xs inline-flex items-center bg-accent-soft text-accent-strong border border-accent-line px-2 py-1 rounded transition-colors"
    {{- else -}}
    class="tag-chip text-xs inline-flex items-center bg-surface-2 text-fg-muted px-2 py-1 rounded hover:bg-hover-strong transition-colors"
-   {{- end }}
-   onclick="event.stopPropagation();">
+   {{- end }}>
   <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
   </svg>

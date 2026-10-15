@@ -1,0 +1,25 @@
+{{ define "main" }}
+  {{/* Overrides themes/void/layouts/404.html for one line.
+
+       The decorative numeral was `text-line-strong` — a *border* token, #d1d5db on the light canvas
+       and #475569 on the dark one — drawn at 1.4:1 and 2.5:1, for 72px bold text, where WCAG asks
+       3:1. axe's `color-contrast` rule found it the day the accessibility pass was added
+       (2026-10-15).
+
+       `text-fg-muted` is the palette's metadata grey: 7:1 in light, 7.3:1 in dark, so the numeral
+       still reads as secondary to the heading, which is what the token was being used to express.
+       Everything else is upstream's markup, kept verbatim so the diff stays one line. */}}
+  <div class="max-w-2xl mx-auto py-24 text-center">
+    <p class="text-7xl font-bold tracking-tight text-fg-muted">404</p>
+    <h1 class="mt-4 text-2xl font-bold text-fg-strong">{{ i18n "not_found_title" | default "Page not found" }}</h1>
+    <p class="mt-3 text-fg-muted">{{ i18n "not_found_body" | default "The page you are looking for does not exist or has been moved." }}</p>
+    <div class="mt-8 flex flex-wrap justify-center gap-6 text-sm">
+      <a href="{{ "/" | relLangURL }}" class="inline-flex items-center text-accent hover:text-accent-strong transition-colors">
+        {{ i18n "back_to_home" | default "Back to Home" }}
+      </a>
+      <a href="{{ "/posts/" | relLangURL }}" class="inline-flex items-center text-accent hover:text-accent-strong transition-colors">
+        {{ i18n "all_posts" | default "All posts" }}
+      </a>
+    </div>
+  </div>
+{{ end }}

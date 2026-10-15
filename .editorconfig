@@ -1,0 +1,32 @@
+# Editor conventions for this repository.
+#
+# Matches what the tree already is: 2-space indent, LF, final newline, no trailing
+# whitespace — except in Markdown, where two trailing spaces are a hard line break and
+# stripping them changes how the docs render.
+#
+# Go templates are indented with 2 spaces throughout (theme and site overrides alike), and
+# the CSS/JS/JSON follow suit, so one rule covers everything here.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+
+[*.md]
+# A trailing double space is a Markdown hard line break; a single trailing space is still
+# noise, so the rule is relaxed rather than disabled.
+trim_trailing_whitespace = false
+
+[*.{png,jpg,jpeg,gif,ico,webp,woff,woff2,ttf,otf,pdf,zip}]
+insert_final_newline = false
+
+[Makefile]
+indent_style = tab
+
+[{*.yaml,*.yml}]
+indent_size = 2

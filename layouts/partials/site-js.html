@@ -1,0 +1,21 @@
+{{- /* Loads one of this repository's own JavaScript files — `assets/js/<name>` — with the
+       pipeline every other site asset uses: minified and fingerprinted in production, the file
+       itself in development so a change is visible on reload. The `integrity` attribute is what
+       makes the Content-Security-Policy's `script-src 'self'` meaningful for our own code: the
+       browser refuses a file whose bytes do not match the hash.
+
+       Call with a dict:
+
+         {{ partial "site-js.html" (dict "path" "js/head-init.js") }}
+         {{ partial "site-js.html" (dict "path" "js/new-badge.js" "defer" true) }}
+
+       `defer` is opt-in because head-init.js must run before the stylesheets (see that file).
+       Nothing is printed when the file does not exist, so a rename here can never leave a
+       dangling <script src>. */ -}}
+{{- $path := .path -}}
+{{- $defer := .defer | default false -}}
+{{- with resources.Get $path -}}
+  {{- $js := . -}}
+  {{- if hugo.IsProduction }}{{ $js = $js | minify | fingerprint }}{{ end -}}
+<script{{ if $defer }} defer{{ end }} src="{{ $js.RelPermalink }}"{{ if hugo.IsProduction }} integrity="{{ $js.Data.Integrity }}" crossorigin="anonymous"{{ end }}></script>
+{{- end -}}

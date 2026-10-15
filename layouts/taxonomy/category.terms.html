@@ -1,0 +1,82 @@
+{{ define "main" }}
+{{- /*
+  The /categories/ index: one expandable group per category, each listing its posts.
+
+  This is an override of themes/void/layouts/taxonomy/category.terms.html, for three reasons —
+  the first of which is a bug rather than a preference (#36):
+
+  1. The theme drove the accordion from an inline <script> and navigated each post row by
+     setting `window.location.href` from a `data-href` attribute. The site's
+     Content-Security-Policy (layouts/partials/head.html) has no 'unsafe-inline' in `script-src`,
+     so the script was blocked: as deployed, the category names could not be expanded at all and
+     the post rows did nothing when clicked. <details>/<summary> is the same disclosure with no
+     JavaScript, so it cannot be blocked, and the rows below are ordinary links — which also
+     means they can be middle-clicked, opened in a new tab and crawled.
+
+  2. Heading order. The theme's markup went straight from the page <h1> to an <h3> per post,
+     which is a skipped level on 19 pages (measured) and one of the faults listed in
+     docs/BlogIssues.md. Each category name is now an <h2>, so the outline reads
+     h1 → category → post. A heading inside <summary> is valid: the element's content model is
+     phrasing content *optionally intermixed with heading content*.
+
+  3. Consistency. The group cards wear the same token hairline as every other card on the site
+     (#29) and the dates use the shared `date_month_day_format` the rest of the lists use (#13),
+     rather than the theme's bare ISO date.
+
+  Keep `.category-group` and `.category-chevron`: assets/css/site.css styles the open state
+  through them. There is no script to keep in step with any more. */ -}}
+<div class="max-w-4xl mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-center text-fg mb-8">{{ .Title }}</h1>
+
+  <!-- Brief description -->
+  <div class="mb-8 text-center text-fg-muted text-sm">
+    <p>{{ i18n "categories_help_text" | default "Click any category to expand or collapse articles" }}</p>
+  </div>
+
+  <!-- Categories accordion -->
+  <div class="space-y-4">
+    {{ range $key, $value := .Data.Terms.Alphabetical }}
+      <div class="category-group bg-surface border border-line shadow-sm rounded-lg overflow-hidden">
+        <details>
+          <summary class="category-toggle w-full text-left px-6 py-4 flex justify-between items-center cursor-pointer focus:outline-none">
+            <span class="flex items-center">
+              <h2 class="m-0 text-base font-medium text-fg">{{ .Page.Title }}</h2>
+              <span class="category-count-badge ml-2 px-2 py-0.5 text-xs rounded-full">
+                {{ .Count }}
+              </span>
+            </span>
+            <svg class="category-chevron h-5 w-5 text-fg-faint shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+
+          <div class="px-6 pb-4 border-t border-line-soft">
+            <div class="space-y-3 pt-3">
+              {{ range .Pages.ByDate.Reverse }}
+              <a class="block hover:bg-hover rounded p-3 transition-colors no-underline" href="{{ .RelPermalink }}">
+                <h3 class="text-base font-medium mb-1 text-fg">
+                  {{ .Title }}
+                </h3>
+                <div class="text-xs text-fg-faint">
+                  {{ .Date.Format (i18n "date_month_day_format" | default "Jan 02 2006") }}
+                </div>
+              </a>
+              {{ end }}
+            </div>
+          </div>
+        </details>
+      </div>
+    {{ end }}
+  </div>
+
+  <!-- Back to home link -->
+  <div class="mt-10 text-center">
+    <a href="{{ "/" | relLangURL }}" class="inline-flex items-center text-fg-muted hover:text-accent transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+      {{ i18n "back_to_home" | default "Back to Home" }}
+    </a>
+  </div>
+</div>
+{{ end }}

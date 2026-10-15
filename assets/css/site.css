@@ -4,49 +4,148 @@
  * retarget theme tokens and override theme rules without editing themes/void, keeping
  * the theme a pristine mirror of upstream that can be upgraded at will.
  *
- * Contents: callout alert palette (extracted from the old forked theme main.css),
- *           the earthy-green accent ramp, the blue spots the theme hard-codes, and the two
- *           palette classes the theme still bakes into a taxonomy template.
+ * Contents: the Latin-only body font stack (the theme's `--font-bilingual` carried Noto Serif SC
+ *           and four other CJK families), the content width scale (1.5x the theme's column),
+ *           callout alert palette (extracted from the old forked theme main.css), the
+ *           earthy-green accent ramp, the blue spots the theme hard-codes, and the two palette
+ *           classes the theme still bakes into a taxonomy template.
  */
+
+/* --- Body font stack: Latin only --- */
+
+/* The theme declares `--font-bilingual` inside its Tailwind @theme block as
+     "Source Serif 4", "Noto Serif SC", "Source Han Serif SC", "Source Han Serif CN",
+     "Songti SC", "STSong", ui-serif, serif
+   and `body.font-bilingual` applies it with !important. Every one of those CJK families is now
+   unreachable anyway — their fonts are no longer in the artifact — but leaving them named would
+   keep the browser hunting for a face that does not exist, and `html[lang^="zh"]` would still
+   switch the whole stack to a CJK face the site cannot render.
+
+   Overriding the *variable* rather than the rule is deliberate: the theme uses it in three
+   places (`body.font-bilingual`, `--default-font-family`, and Pagefind's `--pagefind-ui-font`),
+   so one declaration keeps all three consistent. This file is linked after the theme
+   stylesheet, so an equal-specificity `:root` declaration wins.
+
+   If this site ever gains non-Latin content, add the family here *and* reinstate its
+   `@font-face` sources — in that order, or the stack will name a font nothing can load. */
+:root {
+  --font-bilingual: "Source Serif 4", ui-serif, serif;
+}
+
+/* --- Content width: 1.5x the theme's column -------------------------------------
+
+The theme's page column is `max-w-4xl` (56rem, 896px) and its long-form measure is
+`.article-inner`'s 46rem (736px). The site asked for a 50% wider default (2026-10-15), and the
+whole scale moves together so no surface is 1.5x while the one beside it is not:
+
+  - `--container-4xl` 56rem -> 84rem  every `max-w-4xl`: the header, `main`, the footer, the
+    post lists, the taxonomy and term pages, the homepage hero and the article card
+  - `--container-3xl` 48rem -> 72rem  the /search/ page
+  - `--container-2xl` 42rem -> 63rem  the 404's centred notice and the footer disclaimer
+  - `.article-inner`  46rem -> 69rem  the prose itself, and with it the series nav, the inline
+    table of contents and the comment thread, which are the same wrapper
+
+Overriding the Tailwind container tokens rather than the classes is deliberate: the templates keep
+the class names the theme uses, so an upstream change to a container class still lands, and every
+width in the site is in this one block. Tailwind emits those tokens inside `@layer theme` and this
+file is plain, unlayered CSS loaded after it, so these win without !important — the same mechanism
+that makes the `--font-bilingual` override above work.
+
+Line length is the cost of the wider measure: 69rem at the prose size is close to 100 characters,
+past the 45-90 the theme's 46rem was chosen for. That is the requested trade — if it reads long,
+cap the measure on its own (a `max-width` on `.prose`) rather than shrinking the column, which
+would undo the width everywhere else too.
+
+Keep in step with the wide-screen block below: it hands the same 84rem to `main` and needs the
+arithmetic 84rem + 2 x (14rem sidebar + 1.5rem gap) + 2 x 2.5rem padding = 120rem for the table of
+contents sidebar. */
+:root {
+  --container-2xl: 63rem;
+  --container-3xl: 72rem;
+  --container-4xl: 84rem;
+}
+
+.article-inner { max-width: 69rem; }
+
+/* --- Code blocks: the three colours the theme's syntax palettes get wrong --- */
+
+/* Found by the axe pass (tests/e2e/accessibility.spec.ts) on its first run, on the one page with
+   code on it. All three selectors have to match the theme's own specificity —
+   `.code-block-body .highlight .lnt` is what actually colours a line number, not
+   `.chroma .lnt` — and this file is linked after the theme stylesheet, so an equal-specificity
+   rule here wins.
+
+   1. Line numbers. chroma-light.css says #94a3b8 and chroma-dark.css #737679: 2.5:1 and 3.8:1
+      against their own code backgrounds. Line numbers are text, so 1.4.3 applies to them. */
+.code-block-body .highlight .ln,
+.code-block-body .highlight .lnt { color: #6b7280; }        /* 4.9:1 on the light fill */
+.dark .code-block-body .highlight .ln,
+.dark .code-block-body .highlight .lnt { color: #8b93a1; }  /* 5.5:1 on the dark one */
+
+/*   2. Punctuation and built-in command names, in dark mode only. The theme's chroma-dark.css
+      declares `.dark .chroma .p {}` and `.dark .chroma .nb {}` — empty rules, so the *light*
+      palette's colours (#1f2328 and #6639ba) stay in force and are drawn on a near-black code
+      fill: 1.1:1 and 2.4:1. That is an upstream gap rather than a choice, and it is why these
+      two are the only Chroma classes overridden here: everything else has a dark colour of its
+      own. Values are the ones GitHub's dark theme uses for the same tokens. */
+.dark .code-block-body .highlight .p  { color: #c9d1d9; }   /* 11:1 */
+.dark .code-block-body .highlight .nb { color: #ffa657; }   /* 8.3:1 */
 
 /* --- Callout Alert Colors Configuration --- */
 
 /* --- 1. Base Fallback Defaults (MUST GO FIRST) --- */
 /* Base Fallback Defaults */
+/* Callout icons are inlined SVGs now (#36) — see assets/icons/boxicons/ and
+   layouts/partials/icon.html. Two rules replace what the icon font used to provide:
+
+     - `.callout-icon-svg` sets the 2.25rem box the shortcode used to ask for with an inline
+       `font-size: 2.25rem` and the glyph filled that box; `display: block` keeps the SVG on its
+       own line, which is what the inline `vertical-align: middle` was working around.
+     - `.callout .callout-icon` releases the theme's fixed 1rem box for the wrapper
+       (themes/void/assets/css/main.css), which only worked while the glyph was allowed to
+       overflow it. Without this, the icon is drawn but clipped to 1rem by the wrapper.
+
+   The colour rules below are unchanged apart from their selector: they used to colour an <i>
+   whose glyph came from a font, and now colour an <svg> that inherits that colour through
+   `fill="currentColor"`. */
+.callout .callout-icon,
+.dark .callout .callout-icon { width: auto; height: auto; }
+.callout-icon-svg { width: 2.25rem; height: 2.25rem; display: block; }
+
 .callout { background-color: #f1f5f9; color: #1e293b; }
-.callout .callout-icon i { color: #475569 !important; }
+.callout .callout-icon svg { color: #475569 !important; }
 
 /* --- 2. Specific Alert Themes (Overwrites the default) --- */
 
 /* Info Theme (Blue) */
 .callout.callout-info { background-color: #e6f0fa; }
-.callout.callout-info .callout-icon i { color: #1d4ed8 !important; }
+.callout.callout-info .callout-icon svg { color: #1d4ed8 !important; }
 
 /* Tip Theme (Green — tracks the site hue, see the accent ramp below). */
 .callout.callout-tip { background-color: #e8eed9; }
-.callout.callout-tip .callout-icon i { color: #4a6a2c !important; }
+.callout.callout-tip .callout-icon svg { color: #4a6a2c !important; }
 .callout-tip .callout-header { color: #3a5423; }
 
 /* Warning Theme (Fixed to a Soft Pastel Yellow) */
 .callout.callout-warning { background-color: #fef9c3; } /* Softer, lighter pastel yellow */
-.callout.callout-warning .callout-icon i { color: #854d0e !important; } /* Softened dark gold icon */
+.callout.callout-warning .callout-icon svg { color: #854d0e !important; } /* Softened dark gold icon */
 
 /* Danger Theme (Red) */
 .callout.callout-danger { background-color: #fee2e2; }
-.callout.callout-danger .callout-icon i { color: #b91c1c !important; }
+.callout.callout-danger .callout-icon svg { color: #b91c1c !important; }
 
 /* Note Theme (Soft Pastel Slate/Steel Blue) */
 .callout.callout-note { background-color: #e2e8f0; } /* Deeper, richer pastel slate gray */
-.callout.callout-note .callout-icon i { color: #1e293b !important; } /* Dark slate icon for solid contrast */
+.callout.callout-note .callout-icon svg { color: #1e293b !important; } /* Dark slate icon for solid contrast */
 
 
 /* Thought Theme (Soft Pastel Purple/Lavender) */
 .callout.callout-thought { background-color: #f3e8ff; } /* Soft purple tint */
-.callout.callout-thought .callout-icon i { color: #6b21a8 !important; }
+.callout.callout-thought .callout-icon svg { color: #6b21a8 !important; }
 
 /* Neutral Theme (Purple/Indigo Fallback) */
 .callout.callout-neutral { background-color: #e0e7ff; }
-.callout.callout-neutral .callout-icon i { color: #4338ca !important; }
+.callout.callout-neutral .callout-icon svg { color: #4338ca !important; }
 
 /* --- 3. Dark-mode alert themes -------------------------------------------------
  * The rules above are plain (unscoped) and sit later in the cascade than the theme's dark
@@ -66,33 +165,33 @@
    `idea`, and a typo in `type`/`{.note}` gets here too). Measured without it: the light literal
    #475569 on the theme's dark fallback fill is 2.3:1 — the same bug in miniature. Must stay
    before the variant rules: at equal specificity the later one wins. */
-.dark .callout .callout-icon i { color: #cbd5e1 !important; }
+.dark .callout .callout-icon svg { color: #cbd5e1 !important; }
 
 .dark .callout-info { background-color: rgba(59, 130, 246, 0.20); }
-.dark .callout-info .callout-icon i { color: #bfdbfe !important; }
+.dark .callout-info .callout-icon svg { color: #bfdbfe !important; }
 
 .dark .callout-tip { background-color: rgba(138, 168, 94, 0.18); }
-.dark .callout-tip .callout-icon i { color: #a9c583 !important; }
+.dark .callout-tip .callout-icon svg { color: #a9c583 !important; }
 .dark .callout-tip .callout-header { color: #cbdfa9; }
 
 .dark .callout-warning { background-color: rgba(217, 119, 6, 0.25); }
-.dark .callout-warning .callout-icon i { color: #fcd34d !important; }
+.dark .callout-warning .callout-icon svg { color: #fcd34d !important; }
 
 .dark .callout-danger { background-color: rgba(239, 68, 68, 0.22); }
-.dark .callout-danger .callout-icon i { color: #fecaca !important; }
+.dark .callout-danger .callout-icon svg { color: #fecaca !important; }
 
 .dark .callout-note { background-color: rgba(148, 163, 184, 0.22); }
-.dark .callout-note .callout-icon i { color: #cbd5e1 !important; }
+.dark .callout-note .callout-icon svg { color: #cbd5e1 !important; }
 .dark .callout-note .callout-header { color: #cbd5e1; }
 
 .dark .callout-thought { background-color: rgba(168, 85, 247, 0.20); }
-.dark .callout-thought .callout-icon i { color: #e9d5ff !important; }
+.dark .callout-thought .callout-icon svg { color: #e9d5ff !important; }
 .dark .callout-thought .callout-header { color: #e9d5ff; }
 
 /* The light `neutral` is indigo (#e0e7ff / #4338ca), so its dark form is indigo too, not the
    theme's grey. */
 .dark .callout-neutral { background-color: rgba(99, 102, 241, 0.20); }
-.dark .callout-neutral .callout-icon i { color: #c7d2fe !important; }
+.dark .callout-neutral .callout-icon svg { color: #c7d2fe !important; }
 .dark .callout-neutral .callout-header { color: #c7d2fe; }
 
 /* Callouts keep their own hues: they are semantic (info / tip / warning / danger), not brand
@@ -346,15 +445,97 @@
  * stayed at 56rem (measured at 1920: main 1472px vs header/hero 896px).
  *
  * Resetting the width here and handing it back only to an article that actually has a TOC
- * gives every other page the 56rem column the theme intends. Equal specificity, loaded after
+ * gives every other page the column the theme intends. Equal specificity, loaded after
  * the theme, so these win. The `:has()` half is load-bearing, not belt-and-braces: with the
  * reset alone the TOC's grid column collapses to 0px and the sidebar disappears at exactly
  * the width it exists for (measured: grid columns 248/896/248 became 0/816/0).
+ *
+ * The arithmetic moved with the column on 2026-10-15, when the page column became 84rem (1.5x,
+ * see the width block above). The sidebar needs 14rem + 1.5rem of gutter beside the card, and
+ * `main` carries 2.5rem of padding at this size, so the window it needs is
+ * 84rem + 2 x (14rem + 1.5rem) + 2 x 2.5rem = 120rem (1920px) — that is the breakpoint, and the
+ * grid's middle column is the card's own width. Between 92rem and 120rem the theme's own "wide
+ * screen" rule would show a sidebar with no room for it beside the wider card, so that range
+ * gets the inline <details> table of contents back: "wide" in the theme means 92rem, and it no
+ * longer means "wide enough for a sidebar".
  *
  * Keep in step with the theme on upgrade: if 92rem, `.article-layout` or `.has-toc` is
  * renamed upstream, this block goes stale (see the appendix of docs/BlogIssues-Fixes.md).
  */
 @media (min-width: 92rem) {
-  .site-main { max-width: 56rem; }
-  .site-main:has(.article-layout.has-toc) { max-width: 92rem; }
+  /* The theme widens `main` to 92rem here; stop it at the column's own width instead, so the
+     page stays aligned with the header and the footer as #30 asked. */
+  .site-main { max-width: 84rem; }
 }
+
+@media (min-width: 92rem) and (max-width: 119.999rem) {
+  /* Not enough window for the sidebar next to an 84rem card: keep the inline TOC. */
+  .toc-sidebar { display: none; }
+  .article-layout.has-toc { display: block; }
+  .article-layout.has-toc .toc-inline { display: block; }
+}
+
+@media (min-width: 120rem) {
+  .site-main:has(.article-layout.has-toc) { max-width: 120rem; }
+  .article-layout.has-toc {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 84rem) minmax(0, 1fr);
+  }
+}
+
+/* --- Disclosures: the homepage series list and the /categories/ index (#36) ------
+ * Both surfaces replaced JavaScript with <details>/<summary>. The homepage's series list called
+ * an inline `toggleSeriesList(...)` from an onclick, and the /categories/ index ran a whole
+ * inline accordion; the site's Content-Security-Policy (layouts/partials/head.html) has no
+ * 'unsafe-inline' in `script-src`, so both were blocked and neither surface did anything as
+ * deployed. A disclosure element needs no script, has a keyboard path and reports its own
+ * state, and the only thing left for CSS is the affordance — the chevron and the rule above the
+ * part list — because the state is the `open` attribute rather than a class something toggles.
+ *
+ * The marker is removed in both spellings: the standard ::marker and the -webkit- one, since
+ * the browser this was measured in only honours the latter. */
+.series-disclosure > summary,
+.category-group > details > summary { list-style: none; }
+.series-disclosure > summary::-webkit-details-marker,
+.category-group > details > summary::-webkit-details-marker { display: none; }
+
+.series-chevron,
+.category-chevron { flex-shrink: 0; transition: transform .2s ease-in-out; }
+.series-chevron { width: .75rem; height: .75rem; margin-left: .375rem; }
+.category-chevron { margin-left: .5rem; }
+.series-disclosure[open] .series-chevron,
+.category-group details[open] .category-chevron { transform: rotate(180deg); }
+
+/* The series part list, which used to be inline styles on the markup: `border-top: 1px dashed
+   var(--line)` could not carry a dark variant, and the `space-y` it also set is not a CSS
+   property at all, so the parts had no spacing. The links' hover was an onmouseover handler,
+   which never fired for a keyboard and is an inline event handler the CSP refuses; it is a
+   :hover/:focus-visible rule now, the same treatment the READ POST button got in #20. */
+.series-parts {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 1rem 0 0;
+  border-top: 1px dashed var(--line);
+}
+.series-parts li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: .5rem;
+}
+.series-parts li:last-child { margin-bottom: 0; }
+.series-parts a {
+  color: var(--accent);
+  font-size: .95rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+.series-parts a:hover,
+.series-parts a:focus-visible { text-decoration: underline; }
+
+/* --- /categories/ index: the group heading is a real <h2> (#36) -----------------
+ * It sits inside <summary>, which is valid — the element's content model allows heading content
+ * inside it — and gives the page an outline of h1 → category → post instead of jumping from the
+ * page title to each post's <h3>. The heading needs its own margin reset because a browser's
+ * default heading margin would push the group's padding around. */
+.category-group h2 { margin: 0; }

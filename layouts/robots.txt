@@ -1,0 +1,11 @@
+# Overrides Hugo's built-in robots.txt, which is the single line "User-agent: *" and nothing else.
+#
+# The difference is the Sitemap line: without it a crawler has to guess the sitemap's location
+# (and Google's documentation, which is what every crawler follows, says to declare it here or
+# submit it by hand). Hugo generates public/sitemap.xml with `enableRobotsTXT = true`, so this is
+# the only place the two are connected.
+#
+# `absURL` rather than RelPermalink: the sitemap line must be absolute, and Hugo's default
+# 600-second robots.txt cache is irrelevant either way at this size.
+User-agent: *
+Sitemap: {{ "sitemap.xml" | absURL }}

@@ -12,12 +12,15 @@
         <div class="text-fg-muted">
           {{ i18n "series_part_of" | default "This post is part of the series" }}
           <a href="{{ .RelPermalink }}" class="font-medium text-accent-strong hover:text-accent-strong no-underline">{{ .LinkTitle }}</a>
-          <span class="text-fg-dim">· {{ len $posts }} {{ i18n "posts" | default "posts" }}</span>
+          {{/* `text-fg-faint`, not `text-fg-dim`: #9ca3af on the canvas is 2.4:1, which axe's
+               `color-contrast` rule fails wherever it is real text. `--fg-dim` is for icons and
+               rules, where contrast requirements do not apply — this is a word. */}}
+          <span class="text-fg-faint">· {{ len $posts }} {{ i18n "posts" | default "posts" }}</span>
         </div>
         <ol class="series-nav-list mt-2 space-y-1">
           {{- range $i, $p := $posts }}
           <li class="flex items-baseline gap-2{{ if eq $p $current }} series-current font-medium text-fg-strong{{ else }} text-fg-muted{{ end }}">
-            <span class="series-index w-5 shrink-0 text-right text-xs text-fg-dim">{{ add $i 1 }}</span>
+            <span class="series-index w-5 shrink-0 text-right text-xs text-fg-faint">{{ add $i 1 }}</span>
             {{- if eq $p $current }}
             <span aria-current="page" style="font-weight: 600;">{{ $p.Title }}</span>
             {{- else }}

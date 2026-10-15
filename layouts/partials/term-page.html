@@ -5,10 +5,10 @@
          {{ partial "term-page.html" (dict "page" . "taxonomy" "categories") }}
 
        `taxonomy` is used two ways: the URL base for the "All …" link (/tags/, /categories/)
-       and the icon/i18n label choice. The cards themselves mirror the /posts/ list card,
-       including the post's tag chips — the chip vocabulary is single-sourced in
-       partials/tag-chip.html, and the term being browsed is picked out with its `current`
-       flag where it is also one of the post's tags. */ -}}
+       and the icon/i18n label choice. Each card is the shared post card
+       (partials/post-card.html) — the same one /posts/ and the homepage render — and the term
+       being browsed is passed through so it is picked out with the accent chip variant where
+       it is also one of the post's tags. */ -}}
 {{- $page := .page -}}
 {{- $taxonomy := .taxonomy -}}
 {{- $isCategory := eq $taxonomy "categories" -}}
@@ -34,7 +34,7 @@
       <h1 class="text-3xl font-bold text-fg">{{ $title }}</h1>
     </div>
     <div class="text-fg-muted text-sm">
-      {{ len $page.Pages }} {{ i18n "articles" | default "篇文章" }}
+      {{ len $page.Pages }} {{ i18n "articles" | default "articles" }}
     </div>
   </div>
 
@@ -42,63 +42,25 @@
   <div class="space-y-16">
     {{ range $page.Pages.GroupByDate "2006" }}
     <div class="relative">
-      <!-- 年份指示器 -->
-      <div class="mb-8 flex items-center">
-        <div class="flex-shrink-0 w-16 h-16 rounded-full bg-gradient-to-br from-accent-soft-2 to-accent-soft flex items-center justify-center text-accent-strong font-bold text-xl shadow-sm relative">
+      {{/* The year is a real heading (#36) — see layouts/_default/list.html for the full note.
+           Without it a tag or category page went from its <h1> straight to the cards' <h3>.
+           Every element inside the heading stays phrasing content, so the badge, the year text
+           and the decorative halo are <span>s rather than <div>s; `absolute`/`flex` are what
+           actually position them, and both work on a span. */}}
+      <h2 class="mb-8 mt-0 text-base font-normal flex items-center">
+        <span class="flex-shrink-0 w-16 h-16 rounded-full bg-gradient-to-br from-accent-soft-2 to-accent-soft flex items-center justify-center text-accent-strong font-bold text-xl shadow-sm relative">
           <span class="relative z-10">{{ .Key }}</span>
           <!-- 装饰性光晕 -->
-          <div class="absolute inset-0 rounded-full bg-accent-line opacity-20 blur-sm"></div>
-        </div>
-        <div class="ml-4 h-0.5 bg-gradient-to-r from-accent-line via-accent-soft-2 to-transparent flex-grow"></div>
-      </div>
+          <span class="absolute inset-0 rounded-full bg-accent-line opacity-20 blur-sm" aria-hidden="true"></span>
+        </span>
+        <span class="ml-4 h-0.5 bg-gradient-to-r from-accent-line via-accent-soft-2 to-transparent flex-grow" aria-hidden="true"></span>
+      </h2>
       
       <!-- 文章列表 -->
       <div class="ml-8 space-y-6">
         {{ range .Pages.ByDate.Reverse }}
-        <div class="relative">
-          <a href="{{ .RelPermalink }}" class="absolute inset-0 z-10" aria-label="{{ .Title }}"></a>
-          {{/* Same card as the /posts/ list: the token hairline plus an accent hover (#29), so
-               every list on the site outlines a card the same way. */}}
-          <div class="bg-surface border border-line hover:border-accent-line rounded-lg shadow-sm hover:shadow-md transition duration-300 overflow-hidden group">
-            <div class="p-5">
-              <div class="flex flex-col sm:flex-row sm:items-baseline justify-between mb-3">
-                <h3 class="text-xl font-medium text-fg group-hover:text-accent transition-colors">
-                  {{ .Title }}
-                </h3>
-                {{/* `datetime` was missing here (and on the /posts/ list): the rendered text is a
-                     formatted date, which is not a valid `<time>` value, so the element said
-                     nothing machine-readable. It is also what the new-badge script reads (#28). */}}
-                <time datetime="{{ .Date.Format "2006-01-02" }}" class="text-sm text-fg-faint mt-1 sm:mt-0 sm:ml-4 flex-shrink-0 flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-fg-dim" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  {{ .Date.Format (i18n "date_month_day_format" | default "01月02日") }}
-                  {{/* "New since your last visit" (#28). Rendered hidden and switched on by
-                       assets/js/new-badge.js from the date in data-post-date, so with JavaScript
-                       off (or storage blocked) nothing shows and the page is what it is today. */}}
-                  <span class="chip-new ml-2" data-post-date="{{ .Date.Format "2006-01-02" }}" hidden>{{ i18n "new_badge" | default "New" }}</span>
-                </time>
-              </div>
-              
-              {{ with partial "summary.html" . }}
-              <div class="text-fg-muted text-sm line-clamp-2">{{ . }}</div>
-              {{ end }}
-              {{/* Action row, the same shape as the /posts/ list card: this post's tags on the left, the
-                   shared READ POST button on the right. It is the same row, the same button and the same
-                   chips, so a card here and a card there read alike — the term you are browsing is picked
-                   out where it is also one of the post's tags. Sits above the card's full-cover anchor
-                   (relative z-20) so the chips and the button stay clickable. */}}
-              <div class="mt-4 flex flex-wrap items-end justify-between gap-3 relative z-20">
-                <div class="flex flex-wrap gap-2">
-                  {{ range .Params.tags }}
-                  {{ partial "tag-chip.html" (dict "term" . "current" (eq . $title)) }}
-                  {{ end }}
-                </div>
-                {{ partial "read-more.html" . }}
-              </div>
-            </div>
-          </div>
-        </div>
+        {{/* The shared card, with the browsed term passed in (#32, #33). */}}
+        {{ partial "post-card.html" (dict "page" . "current" $title) }}
         {{ end }}
       </div>
     </div>
@@ -113,7 +75,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
-      {{ i18n "pagination_previous" | default "上一页" }}
+      {{ i18n "pagination_previous" | default "Previous" }}
     </a>
     {{ else }}
     <div></div>
@@ -121,7 +83,7 @@
     
     {{ if $page.Paginator.HasNext }}
     <a href="{{ $page.Paginator.Next.URL }}" class="px-4 py-2 bg-surface shadow-sm rounded-full text-fg-2 hover:bg-hover transition-colors flex items-center">
-      {{ i18n "pagination_next" | default "下一页" }}
+      {{ i18n "pagination_next" | default "Next" }}
       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
       </svg>
@@ -138,7 +100,7 @@
       {{ i18n $allKey | default $allDefault }}
     </a>
     <a href="{{ "/" | relLangURL }}" class="text-fg-muted hover:text-accent transition-colors">
-      {{ i18n "back_to_home" | default "返回首页" }}
+      {{ i18n "back_to_home" | default "Back to Home" }}
     </a>
   </div>
 </div>

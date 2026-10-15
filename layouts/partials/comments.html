@@ -1,0 +1,51 @@
+{{ if ne .Params.comments false }}
+{{/* Giscus comments.
+     Three things this partial has to get right:
+
+     1. The heading (#34). The thread used to appear with no label at all, so a block of
+        third-party UI just started after the article. `text-xl font-bold text-fg-strong` sits
+        between the post footer's own section headings (text-base, partials/related-posts.html)
+        and the article's prose headings, and aria-labelledby ties it to the section.
+
+     2. The thread's configuration (#35, #36). giscus reads `data-theme` once, when client.js
+        runs, and only then builds its iframe URL — so a hard-coded `data-theme="transparent_dark"`
+        gave every light-mode reader a dark thread. The loader (assets/js/giscus.js) now reads the
+        page's mode at load time and passes `light` or `transparent_dark` accordingly, and it
+        follows later changes through giscus's postMessage API.
+
+        The loader is a file, not an inline script, because the site's Content-Security-Policy
+        (layouts/partials/head.html) has no 'unsafe-inline' in `script-src`. Everything it needs
+        travels as the `data-` attributes below, which is also why they are here rather than in
+        the script: this partial is the one place the thread is configured. `data-repo` and
+        `data-repo-id`, and `data-category`/`data-category-id`, are a matched pair — giscus
+        ignores a category name without its id.
+
+     3. The column (#34 follow-up). The thread used to run to the card's edge on both sides:
+        giscus fills the box it is given, and the box was as wide as the article card. It now
+        carries `article-inner`, the same 46rem column with side padding the prose above it,
+        the post footer, "Post history" and "Related Posts" all use, so the widget's text lines
+        up with the article's. Vertical room comes from pt/pb utilities, since article-inner
+        only sets the side padding.
+
+     Careful with this element's attributes: an HTML element takes the FIRST `class` it is given
+     and silently ignores any later one, so a second `class=` here (which this line used to carry)
+     means whatever it asks for — padding included — never applies. Merge classes into one
+     attribute. */}}
+<div class="comments article-inner pt-6 pb-8" id="giscus-container">
+    <h2 id="comments-heading" class="text-xl font-bold text-fg-strong mb-4">{{ i18n "comments_heading" | default "Discuss…" }}</h2>
+    <div id="giscus-thread"
+         aria-labelledby="comments-heading"
+         data-repo="andrewrdavidson/website"
+         data-repo-id="R_kgDOUMEkrg"
+         data-category="Announcements"
+         data-category-id="DIC_kwDOUMEkrs4DIf3Z"
+         data-mapping="pathname"
+         data-strict="0"
+         data-reactions-enabled="1"
+         data-emit-metadata="0"
+         data-input-position="bottom"
+         data-lang="en"></div>
+</div>
+
+{{ partial "site-js.html" (dict "path" "js/giscus.js" "defer" true) }}
+{{ end }}

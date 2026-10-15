@@ -1,0 +1,57 @@
+{{- /* Shared post card: one implementation for every surface that lists a post — /posts/
+       (layouts/_default/list.html), the taxonomy term pages (partials/term-page.html) and the
+       homepage's "My Recent Posts" (layouts/index.html). Call it with a dict:
+
+         {{ partial "post-card.html" (dict "page" .) }}
+         {{ partial "post-card.html" (dict "page" . "current" $term) }}
+
+       `current` is only passed by the term pages: the term being browsed, so a tag the visitor
+       is already looking at is picked out with tag-chip.html's accent variant.
+
+       Why the wrapper is `relative group` and the hover is `group-hover:` (#32). The card needs
+       a full-cover anchor so the whole box is one click target, and the anchor has to be a
+       sibling of the card body — nested inside it, the anchor would swallow the chips and the
+       READ POST button. But a hover that lands on the anchor then makes the *anchor* `:hover`,
+       never the card body, so `hover:border-accent-line` on the body only fired over the action
+       row (the one part that sits above the anchor). Grouping on the wrapper, which is an
+       ancestor of both, makes any hover inside the card — anchor included — light the border.
+
+       The action row stays `relative z-20` so the chips and the button remain clickable above
+       the anchor. Styling and content are the homepage card's (#33): p-6, `rounded` (4px), no
+       shadow, a text-2xl title, the larger date floated left so the description wraps around it,
+       and the post's categories and tags in one row with READ POST on the right. */ -}}
+{{- $page := .page -}}
+{{- $current := .current | default "" -}}
+<div class="relative group">
+  <a href="{{ $page.RelPermalink }}" class="absolute inset-0 z-10" aria-label="{{ $page.Title }}"></a>
+  <div class="p-6 transition duration-200 bg-surface border border-line group-hover:border-accent-line rounded">
+    <h3 class="text-2xl font-semibold text-fg group-hover:text-accent transition-colors">
+      {{ $page.Title }}
+    </h3>
+    <div class="mt-3 flow-root">
+      <div class="float-left mr-4 mb-1 flex items-center text-lg text-fg-2 whitespace-nowrap">
+        <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" style="width: 1.25rem; height: 1.25rem; margin-right: 0.375rem;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        <time datetime="{{ $page.Date.Format "2006-01-02" }}">{{ $page.Date.Format (i18n "date_month_day_format" | default "Jan 02 2006") }}</time>
+        <span class="chip-new ml-2" data-post-date="{{ $page.Date.Format "2006-01-02" }}" hidden>{{ i18n "new_badge" | default "New" }}</span>
+      </div>
+      {{ with partial "summary.html" $page }}
+      <p class="text-fg-muted">{{ . }}</p>
+      {{ end }}
+    </div>
+    <div class="mt-5 flex flex-wrap items-end justify-between gap-3 relative z-20">
+      <div class="flex flex-wrap gap-2 items-center">
+        {{ with $page.Params.categories }}
+          {{ range . }}
+          {{ partial "category-chip.html" . }}
+          {{ end }}
+        {{ end }}
+        {{ with $page.Params.tags }}
+          {{ range . }}
+          {{ partial "tag-chip.html" (dict "term" . "current" (eq . $current)) }}
+          {{ end }}
+        {{ end }}
+      </div>
+      {{ partial "read-more.html" $page }}
+    </div>
+  </div>
+</div>

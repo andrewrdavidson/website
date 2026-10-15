@@ -1,0 +1,28 @@
+# Normalise line endings repository-wide.
+#
+# Text files are stored and checked out with LF. Before this file the tree was mixed —
+# layouts/index.html and layouts/partials/comments.html were CRLF while every other template
+# was LF, and the two docs disagreed with each other — so touching a CRLF file rewrote the
+# whole file in the diff. `text=auto eol=lf` fixes that at the source: git normalises on the
+# way in, hands out LF, and nobody has to think about it again.
+* text=auto eol=lf
+
+# Binary formats: never normalise, never try to diff them (a `.woff2` of 200 KB would
+# otherwise show up as a conflict on every merge).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.pdf binary
+*.zip binary
+
+# Generated files. Marked so GitHub collapses them in a diff and so tooling that reads
+# .gitattributes (linters, coverage reports, code review) skips them.
+package-lock.json linguist-generated
+hugo_stats.json linguist-generated

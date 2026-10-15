@@ -2,8 +2,13 @@
 
        Call with the post page as context:  {{ partial "read-more.html" . }}
 
-       Shared by layouts/index.html (homepage cards) and layouts/_default/list.html
-       (/posts/) so the two lists cannot drift apart. Colours live in assets/css/site.css
-       (.btn-read-more) so light mode is unchanged and dark mode has a variant of its own;
-       an inline style could not carry one. See fix #20. */ -}}
-<a href="{{ .Permalink }}" class="btn-read-more">READ POST</a>
+       Called by partials/post-card.html, which every list that shows a post renders — the
+       homepage's recent posts, /posts/ and the taxonomy term pages — so the lists cannot drift
+       apart. Colours live in assets/css/site.css (.btn-read-more) so light mode is unchanged
+       and dark mode has a variant of its own; an inline style could not carry one. See fix #20.
+
+       `ml-auto` is what keeps the button on the card's right edge when the chip row is long
+       enough to wrap: a wrapped flex item is alone on its line, where the row's
+       `justify-between` would place it at the left. With the chips and the button on one line
+       the auto margin absorbs the same free space `justify-between` did, so nothing moves. */ -}}
+<a href="{{ .Permalink }}" class="btn-read-more ml-auto">READ POST</a>

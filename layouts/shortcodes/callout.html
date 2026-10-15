@@ -29,22 +29,31 @@
   <!-- COLUMN 1: LARGE LEFT-ALIGNED ICON -->
   <div style="grid-column: 1; display: flex; align-items: center;">
     <span class="callout-icon" aria-hidden="true" style="display: block; flex-shrink: 0;">
+      {{/* Icons are vendored SVGs, inlined by partials/icon.html (#36). They were <i> elements
+           backed by the Boxicons web font from a third-party CDN — three cross-origin
+           stylesheets plus their font files, on every page, for these eight glyphs. The files
+           and their licences are in assets/icons/boxicons/ (see the README there); the size and
+           colour come from assets/css/site.css, so nothing about a callout's look depends on a
+           font family any more.
+
+           The `idea` type and every unrecognised `type` fall back to bx-message, which is why
+           there is no "unknown icon" state to render. */}}
       {{- if eq $type "info" -}}
-        <i class='bx bx-badge-info' style='font-size: 2.25rem; vertical-align: middle;'></i>
+        {{- partial "icon.html" (dict "name" "bx-badge-info") -}}
       {{- else if eq $type "tip" -}}
-        <i class='bx bx-light-bulb-alt' style='font-size: 2.25rem; vertical-align: middle;'></i>
+        {{- partial "icon.html" (dict "name" "bx-light-bulb-alt") -}}
       {{- else if eq $type "warning" -}}
-        <i class='bx bx-siren-alt' style='font-size: 2.25rem; vertical-align: middle;'></i>
+        {{- partial "icon.html" (dict "name" "bx-siren-alt") -}}
       {{- else if eq $type "danger" -}}
-        <i class='bxf bx-alert-triangle' style='font-size: 2.25rem; vertical-align: middle;'></i>
+        {{- partial "icon.html" (dict "name" "bx-alert-triangle") -}}
       {{- else if eq $type "note" -}}
-        <i class='bx bx-pin' style='font-size: 2.25rem; vertical-align: middle;'></i>
+        {{- partial "icon.html" (dict "name" "bx-pin") -}}
       {{- else if eq $type "idea" -}}
-        <i class='bx bx-light-bulb' style='font-size: 2.25rem; vertical-align: middle;'></i>
+        {{- partial "icon.html" (dict "name" "bx-light-bulb") -}}
       {{- else if eq $type "thought" -}}
-        <i class='bx bx-thought-bubble' style='font-size: 2.25rem; vertical-align: middle;'></i>
+        {{- partial "icon.html" (dict "name" "bx-thought-bubble") -}}
       {{- else -}}
-        <i class='bx bx-message' style='font-size: 2.25rem; vertical-align: middle;'></i>
+        {{- partial "icon.html" (dict "name" "bx-message") -}}
       {{- end -}}
     </span>
   </div>

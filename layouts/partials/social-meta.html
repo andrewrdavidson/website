@@ -1,0 +1,146 @@
+{{- /*
+  Canonical URL, description and the Open Graph / Twitter tags.
+
+  This replaces the theme's `social_meta.html`, which hardcoded
+  `<meta property="og:locale" content="en_US">` (its only nod to locale was a `zh_CN` branch), so
+  every page of a UK-English site described itself to social platforms as US English — while
+  `<html lang>`, the RSS channel and the hreflang data all said en-GB. The locale is now read from
+  the language rather than asserted, and the site gains a share image it never had: every page
+  emitted og:image-free metadata, so a shared link rendered as a bare title and description.
+
+  Kept as a site-owned partial rather than an in-place edit of the theme's, so `themes/void` stays
+  a pristine mirror (see docs/BlogIssues-Fixes.md). A page can override the title, description and
+  image with `share_title`, `share_description` and `share_image` front matter; `images`, `cover`
+  and `featured_image` are honoured too, and a page bundle's own first image is used when nothing
+  is declared.
+*/ -}}
+
+{{- $title := site.Title -}}
+{{- if not .IsHome -}}
+  {{- $title = .Title -}}
+{{- end -}}
+{{- with .Params.share_title -}}
+  {{- $title = . -}}
+{{- end -}}
+
+{{- $description := "" -}}
+{{- with .Params.share_description -}}
+  {{- $description = . -}}
+{{- end -}}
+{{- if and (not $description) .Description -}}
+  {{- $description = .Description -}}
+{{- end -}}
+{{- if not $description -}}
+  {{- with .Summary -}}
+    {{- $description = . -}}
+  {{- end -}}
+{{- end -}}
+{{- if not $description -}}
+  {{- $description = site.Params.description | default site.Title -}}
+{{- end -}}
+{{- $description = $description | plainify | htmlUnescape | replaceRE `\s+` " " | strings.TrimSpace | truncate 160 -}}
+
+{{/* Image candidates, most specific first. A page bundle's own first image is the last resort
+     before the site default, which is what every page used to lack. */}}
+{{- $candidate := "" -}}
+{{- with .Params.share_image -}}
+  {{- $candidate = . -}}
+{{- end -}}
+{{- if and (not $candidate) .Params.cover -}}
+  {{- $candidate = .Params.cover -}}
+{{- end -}}
+{{- if and (not $candidate) .Params.featured_image -}}
+  {{- $candidate = .Params.featured_image -}}
+{{- end -}}
+{{- if and (not $candidate) .Params.image -}}
+  {{- $candidate = .Params.image -}}
+{{- end -}}
+{{- if and (not $candidate) .Params.images -}}
+  {{- $images := .Params.images -}}
+  {{- if not (reflect.IsSlice $images) -}}
+    {{- $images = slice $images -}}
+  {{- end -}}
+  {{- with index $images 0 -}}
+    {{- $candidate = . -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $image := "" -}}
+{{- $width := 0 -}}
+{{- $height := 0 -}}
+{{- if $candidate -}}
+  {{- if or (hasPrefix $candidate "http://") (hasPrefix $candidate "https://") -}}
+    {{- $image = $candidate -}}
+  {{- else -}}
+    {{- with .Resources.GetMatch $candidate -}}
+      {{- $image = .Permalink -}}
+      {{- $width = .Width -}}
+      {{- $height = .Height -}}
+    {{- else -}}
+      {{- $image = $candidate | absURL -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- if and (not $image) .IsPage -}}
+  {{- with .Resources.ByType "image" -}}
+    {{- with index . 0 -}}
+      {{- $image = .Permalink -}}
+      {{- $width = .Width -}}
+      {{- $height = .Height -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- if not $image -}}
+  {{/* static/images/og-default.png — regenerate with `npm run og:image` (tools/make-og-image.mjs).
+     The dimensions are asserted rather than read because a static file has no resource to
+     measure; that script is the only thing that ever writes this file, and it screenshots at
+     exactly this size. */}}
+  {{- $image = "images/og-default.png" | absURL -}}
+  {{- $width = 1200 -}}
+  {{- $height = 630 -}}
+{{- end -}}
+
+{{- $imageAlt := "" -}}
+{{- with .Params.share_image_alt -}}
+  {{- $imageAlt = . -}}
+{{- end -}}
+{{- if not $imageAlt -}}
+  {{- $imageAlt = $title | plainify -}}
+{{- end -}}
+
+{{/* `og:locale` wants an underscore between language and region; the site's language is
+     en-GB, so this is en_GB. Read from the language, never hardcoded. */}}
+{{- $locale := replace (site.Language.Locale | default "en-GB") "-" "_" -}}
+
+<link rel="canonical" href="{{ .Permalink | default site.BaseURL }}">
+<meta name="description" content="{{ $description }}">
+<meta property="og:site_name" content="{{ site.Title }}">
+<meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
+<meta property="og:title" content="{{ $title }}">
+<meta property="og:description" content="{{ $description }}">
+<meta property="og:url" content="{{ .Permalink | default site.BaseURL }}">
+<meta property="og:locale" content="{{ $locale }}">
+<meta property="og:image" content="{{ $image }}">
+{{- with $imageAlt }}
+<meta property="og:image:alt" content="{{ . }}">
+{{- end }}
+{{- if gt $width 0 }}
+<meta property="og:image:width" content="{{ $width }}">
+<meta property="og:image:height" content="{{ $height }}">
+{{- end }}
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ $title }}">
+<meta name="twitter:description" content="{{ $description }}">
+<meta name="twitter:image" content="{{ $image }}">
+{{- with $imageAlt }}
+<meta name="twitter:image:alt" content="{{ . }}">
+{{- end }}
+
+{{- if .IsPage }}
+<meta property="article:published_time" content="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}">
+<meta property="article:modified_time" content="{{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" }}">
+{{- range .Params.tags }}
+<meta property="article:tag" content="{{ . }}">
+{{- end }}
+{{- end }}

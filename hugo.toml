@@ -1,16 +1,38 @@
 baseURL = 'https://kelrys.com/'
-defaultContentLanguage = 'en'   # UI language: picks i18n/en.toml
-hasCJKLanguage = true           # correct word counts / summaries for Chinese content
+# `defaultContentLanguage` is the i18n lookup key: it must stay 'en' so the translation
+# bundles resolve (i18n/en.toml here, themes/void/i18n/en.toml upstream). The *variant* of
+# English is `languageCode` below, which is what ends up in <html lang> and in the RSS feed.
+# Keeping the two apart is what lets the site be en-GB without renaming every i18n file.
+defaultContentLanguage = 'en'
+# Not a CJK site: no content in Chinese, Japanese or Korean, no CJK face in the artifact, and
+# nothing that will ever need either. Hugo's CJK-aware word counting only applies to text that
+# contains CJK characters, so leaving this on cost nothing and bought nothing — off (2026-10-15)
+# with the rest of the stack.
+hasCJKLanguage = false
 enableRobotsTXT = true
 # Real last-modified dates. Without this, .GitInfo is nil and .Lastmod silently falls back
 # to the post's own `date`, so "Last updated on" just repeated the publication date (#7).
 # CI checks out with fetch-depth: 0, so the commit dates are available there too.
 enableGitInfo = true
 title = 'kelrys.com'
+# The theme is a git submodule, kept as a pristine mirror of upstream: nothing under themes/ is
+# ever edited, and every change lives in this repo's layouts/, assets/, i18n/ or static/ (see
+# docs/BlogIssues-Fixes.md).
 theme = "void"
+
+[params]
+# Fallback for the meta description and the social cards (layouts/partials/social-meta.html).
+# Used by pages with no description of their own, and by the homepage, which has no content to
+# summarise — it is a layout, not a page. Written in the site's own voice rather than left as
+# the site title, because a description that just repeats the title is worse than none.
+description = 'Notes on DevOps, Windows, PowerShell and Proxmox: working series, handy tips, and the occasional driver that turned out to be a rabbit hole.'
 
 [languages]
   [languages.en]
+    # UK English throughout: <html lang>, hreflang, the RSS channel language and the Pagefind
+    # index (CI passes --force-language en-GB to match). One key, not two: `locale` is what
+    # Hugo 0.158 renamed `languageCode` to, and it feeds all of those at once, so the site
+    # cannot end up describing itself as two variants of English.
     locale = 'en-GB'
 
 # Main menu. `identifier` matches an i18n key (nav_home, nav_posts, ...) so the
@@ -40,6 +62,15 @@ weight = 30
 name = 'About'
 pageRef = '/about'
 weight = 40
+
+# Write hugo_stats.json: the class/id/tag inventory of the *rendered* site. Tailwind's
+# entry point (themes/void/assets/css/main.css) sources it with `@source "hugo_stats.json"`,
+# and the stylesheet is compiled inside `templates.Defer` because the file has to exist
+# before Tailwind runs. Without this setting the @source line points at a file that is never
+# written, so Tailwind silently falls back to scanning the whole working tree — including
+# Markdown prose that merely mentions a class name.
+[build.buildStats]
+  enable = true
 
 # Required for the theme's code blocks (class-based Chroma output)
 [markup.highlight]
@@ -71,7 +102,12 @@ weight = 40
     endLevel = 6
     ordered = false
 
-# Allow raw HTML within Markdown (for KaTeX, etc.)
+# Allow raw HTML within Markdown. This is not decoration: existing content depends on it
+# (content/about/index.md uses <sub>, and one post carries a raw <div class="alert …"> block
+# instead of the callout shortcode). The trade-off is that anything in `content/` can emit
+# arbitrary markup, which is tolerable because every word of it is authored here and nothing
+# is user-submitted — but it is also why layouts/partials/head.html ships a Content-Security-Policy
+# meta tag (see the Security section of docs/BlogIssues-Fixes.md).
   [markup.goldmark]
     [markup.goldmark.renderer]
       unsafe = true
@@ -81,8 +117,15 @@ weight = 40
   allowContent = ['! ^text/html$', '! ^text/org$']
   enableInlineShortcodes = false
 
+  # Only the binaries a build actually needs. Hugo's default list also allows Dart Sass, Go
+  # and npx; nothing here uses them — the site has no Sass sources (the stylesheet is plain
+  # CSS compiled by Tailwind), no Hugo Modules, and `css.TailwindCSS` invokes the local
+  # `tailwindcss` binary directly rather than through npx. Removing them means a template
+  # cannot shell out to a package runner (which would fetch and execute arbitrary code) or
+  # to a toolchain this repository never installs. `.github/workflows/hugo.yaml` pins the
+  # same picture: it installs Node, npm and Hugo, and no Sass.
   [security.exec]
-    allow = ['^(dart-)?sass$', '^go$', '^git$', '^node$', '^postcss$', '^tailwindcss$', '^npx$']
+    allow = ['^git$', '^node$', '^postcss$', '^tailwindcss$']
     osEnv = ['(?i)^((HTTPS?|NO)_PROXY|PATH(EXT)?|APPDATA|TE?MP|TERM|GO\w+|(XDG_CONFIG_)?HOME|USERPROFILE|SSH_AUTH_SOCK|DISPLAY|LANG|SYSTEMDRIVE|PROGRAMDATA)$']
 
   [security.funcs]
@@ -120,6 +163,26 @@ weight = 40
     name = "series"
     weight = 100
 
+# ----------------------------------------------------------------------------
+# Why there are no [[module.mounts]] here
+# ----------------------------------------------------------------------------
+# The theme's static/ holds three things: katex/ (needed), fonts/ (the Latin faces this site uses
+# plus 6.6 MB of noto-serif-sc/ CJK slices) and favicon/ (four icons nothing references). Hugo
+# copies a static directory wholesale, and the only supported way to filter a theme's static is to
+# stop naming the theme with `theme =` and import it with `noMounts = true`, then re-mount every
+# component by hand — a project-side mount cannot reach into a theme's own mount.
+#
+# That was tried, measured and reverted (2026-10-15). It does drop the files: public/fonts went
+# from 211 files/6.9 MB to 9 files/248 KB and the four dead icons went with them. It also changed
+# template resolution: the site's layouts/index.html stopped winning the home page and the theme's
+# own _default/home.html rendered instead — a silent, page-level regression that only a browser
+# test catches. `theme = "void"` resolves templates the documented way and is worth more than
+# dead bytes in the artifact.
+#
+# The unwanted files are therefore pruned from the build output instead — `npm run prune`
+# (tools/prune-artifact.mjs), wired into the build scripts and the deploy workflow, with
+# tests/check-html.mjs failing if any of them reappears. That is ugly in the one way that matters:
+# it is explicit, it is checked, and it does not touch Hugo's lookup order.
 [caches]
   [caches.images]
     dir = ':cacheDir/images'

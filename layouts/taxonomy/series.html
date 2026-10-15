@@ -28,10 +28,13 @@
   <div class="space-y-8">
     {{ range .Pages.ByDate.GroupByDate "2006" "asc" }}
     <div>
-      <div class="mb-6 flex items-center">
-        <div class="year-indicator-badge flex-shrink-0 w-16 h-16 rounded-full bg-gradient-to-br from-accent-soft to-accent-soft-2 flex items-center justify-center text-accent-strong font-bold text-xl shadow-sm">{{ .Key }}</div>
-        <div class="ml-4 h-px bg-gradient-to-r from-accent-line to-transparent flex-grow"></div>
-      </div>
+      {{/* The year is a real <h2> (#36), the same heading /posts/ and the term pages now use, so a
+           series page reads h1 → year → part instead of jumping from h1 to h3. See
+           layouts/_default/list.html for the note on the classes that keep the badge's look. */}}
+      <h2 class="mb-6 mt-0 text-base font-normal flex items-center">
+        <span class="year-indicator-badge flex-shrink-0 w-16 h-16 rounded-full bg-gradient-to-br from-accent-soft to-accent-soft-2 flex items-center justify-center text-accent-strong font-bold text-xl shadow-sm">{{ .Key }}</span>
+        <span class="ml-4 h-px bg-gradient-to-r from-accent-line to-transparent flex-grow" aria-hidden="true"></span>
+      </h2>
       <ol class="space-y-4">
         {{ range .Pages.ByDate }}
         <li class="relative">

@@ -21,11 +21,24 @@ Renders a menu for the given menu ID.
 {{- define "partials/inline/menu/walk.html" }}
   {{- $page := .page }}
   {{- range .menuEntries }}
-    {{- $attrs := dict "href" .URL }}
+    {{/* ONE class attribute, always (#36). The theme's version built `$attrs` with `class` twice —
+         the layout classes, then "active font-bold" for the current item — and an element takes
+         the FIRST `class` it is given, silently ignoring any later one. The effect was that the
+         current/ancestor styling never applied anywhere: 15 pages shipped an <a> carrying two
+         `class` attributes and the browser kept only the layout one. `aria-current` is a separate
+         attribute, so that half did work, which is what made the bug look like a CSS problem.
+
+         This is the same trap as the giscus container in #34, and it can no longer be
+         reintroduced quietly: tests/check-html.mjs fails any page whose element repeats an
+         attribute name. */}}
+    {{- $class := "px-2 py-1 sm:px-3 sm:py-2 rounded hover:bg-hover transition-colors" -}}
+    {{- $attrs := dict "href" .URL -}}
     {{- if $page.IsMenuCurrent .Menu . }}
-      {{- $attrs = merge $attrs (dict "class" "active font-bold" "aria-current" "page") }}
+      {{- $attrs = merge $attrs (dict "class" (printf "%s active font-bold" $class) "aria-current" "page") }}
     {{- else if $page.HasMenuCurrent .Menu .}}
-      {{- $attrs = merge $attrs (dict "class" "ancestor font-semibold" "aria-current" "true") }}
+      {{- $attrs = merge $attrs (dict "class" (printf "%s ancestor font-semibold" $class) "aria-current" "true") }}
+    {{- else }}
+      {{- $attrs = merge $attrs (dict "class" $class) }}
     {{- end }}
     {{- $name := .Name }}
     {{- with .Identifier }}
@@ -35,7 +48,6 @@ Renders a menu for the given menu ID.
     {{- end }}
     <li class="nav-item group text-fg-muted hover:text-fg-strong text-base sm:text-lg">
       <a
-        class="px-2 py-1 sm:px-3 sm:py-2 rounded hover:bg-hover transition-colors"
         {{- range $k, $v := $attrs }}
           {{- with $v }}
             {{- printf " %s=%q" $k $v | safeHTMLAttr }}

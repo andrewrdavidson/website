@@ -1,0 +1,20 @@
+{{- /* Inline one of the vendored icons in assets/icons/boxicons/ — the callout shortcode's eight
+       glyphs. Inline rather than an <img> or a font because these icons are a solid colour that
+       has to follow the callout palette in both modes: an inline <svg> inherits `currentColor`
+       from the CSS rules that colour it, at any zoom level and with no extra request.
+
+       Call with a dict:  {{ partial "icon.html" (dict "name" "bx-pin") }}
+
+       The only rewriting done to the file's markup is swapping its opening <svg …> tag for one
+       that sets `fill="currentColor"` (the vendored files carry no fill of their own, on purpose —
+       see the README beside them), an aria-hidden flag and a viewBox-only box. That keeps the
+       file untouched apart from its wrapper, so re-downloading an icon is a no-op here. Size
+       comes from `.callout-icon-svg` in assets/css/site.css, not from width/height attributes, so
+       a callout's icon scales with the stylesheet rather than being locked to the SVG's 24px.
+
+       A name with no file renders nothing at all rather than a broken box; the shortcode's
+       fallback type is what stops that being visible in practice. */ -}}
+{{- with resources.Get (printf "icons/boxicons/%s.svg" (.name | default "bx-message")) -}}
+  {{- $svg := .Content | replaceRE `<svg[^>]*>` `<svg class="callout-icon-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">` -}}
+  {{- $svg | safeHTML -}}
+{{- end -}}

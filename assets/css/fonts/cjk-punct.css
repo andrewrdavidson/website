@@ -1,0 +1,14 @@
+/* Shadows themes/void/assets/css/fonts/cjk-punct.css, which the theme's main.css imports.
+ *
+ * The theme's file maps the punctuation shared with the CJK face (— …… “ ” ·) to two slices of
+ * Noto Serif SC, and is pulled in only by its `html[lang^="zh"]` stack. This site is en-GB with no
+ * Chinese content and no intention of any, and the noto-serif-sc slices it points at are no longer
+ * in the artifact (see the prune note in hugo.toml) — so the declarations were a dangling
+ * reference to files that no longer exist, kept alive by an @import that lives in a theme file.
+ *
+ * Emptying it here rather than in the theme keeps `themes/void` a pristine mirror. The override is
+ * listed in the appendix of docs/BlogIssues-Fixes.md for the next submodule bump.
+ *
+ * The theme's main.css still imports this path, and that import must keep resolving: deleting this
+ * file would not restore the CJK declarations, it would just leave an @import pointing at nothing.
+ */
