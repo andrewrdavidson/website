@@ -54,7 +54,7 @@
       {{/* The date, in the card's top-right cell and above the READ POST button at the foot. */}}
       <div class="card-date ml-auto flex items-center text-lg text-fg-2 whitespace-nowrap">
         <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" style="width: 1.25rem; height: 1.25rem; margin-right: 0.375rem;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-        <time datetime="{{ $page.Date.Format "2006-01-02" }}">{{ $page.Date.Format (i18n "date_month_day_format" | default "Jan 02 2006") }}</time>
+        <time datetime="{{ $page.Date.Format "2006-01-02" }}">{{ partial "format-date.html" $page.Date }}</time>
         <span class="chip-new ml-2" data-post-date="{{ $page.Date.Format "2006-01-02" }}" hidden>{{ i18n "new_badge" | default "New" }}</span>
       </div>
     </div>

@@ -10,6 +10,7 @@
     <div class="text-fg-muted text-sm mt-2">
       {{ len .Pages }} {{ i18n "articles" | default "articles" }}
       <span class="text-fg-faint">· {{ if eq $first.Unix $last.Unix }}{{ $first.Format $dateFormat }}{{ else }}{{ $first.Format $dateFormat }} – {{ $last.Format $dateFormat }}{{ end }}</span>
+      <span class="text-fg-faint">· {{ if eq $first.Unix $last.Unix }}{{ partial "format-date.html" $first }}{{ else }}{{ partial "format-date.html" $first }} – {{ partial "format-date.html" $last}}{{ end }}</span>
     </div>
   </div>
   {{/* Year groupings (#26, level R2): the same badge and hairline markup the /posts/ list uses,
@@ -28,13 +29,6 @@
   <div class="space-y-8">
     {{ range .Pages.ByDate.GroupByDate "2006" "asc" }}
     <div>
-      {{/* The year is a real <h2> (#36), the same heading /posts/ and the term pages now use, so a
-           series page reads h1 → year → part instead of jumping from h1 to h3. See
-           layouts/_default/list.html for the note on the classes that keep the badge's look. */}}
-      <h2 class="mb-6 mt-0 text-base font-normal flex items-center">
-        <span class="year-indicator-badge flex-shrink-0 w-16 h-16 rounded-full bg-gradient-to-br from-accent-soft to-accent-soft-2 flex items-center justify-center text-accent-strong font-bold text-xl shadow-sm">{{ .Key }}</span>
-        <span class="ml-4 h-px bg-gradient-to-r from-accent-line to-transparent flex-grow" aria-hidden="true"></span>
-      </h2>
       <ol class="space-y-4">
         {{ range .Pages.ByDate }}
         <li class="relative">
@@ -50,7 +44,7 @@
               {{/* Was a bare `2006-01-02`, the last raw ISO date on the site while every other list
                    used the shared format (#13). Under a year heading that also repeated the year,
                    so it now matches /posts/, which prints the full date under its year badge too. */}}
-              <time class="text-sm text-fg-faint" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format $dateFormat }}</time>
+              <time class="text-sm text-fg-faint" datetime="{{ .Date.Format "2006-01-02" }}">{{ partial "format-date.html" .Date }}</time>
               {{ with partial "summary.html" . }}<p class="text-fg-muted text-sm mt-2 line-clamp-2">{{ . }}</p>{{ end }}
             </div>
           </div>
@@ -60,9 +54,9 @@
     </div>
     {{ end }}
   </div>
-  <div class="mt-10 flex justify-center space-x-8">
+  {{/*  <div class="mt-10 flex justify-center space-x-8">
     <a href="{{ "series" | relURL }}" class="text-fg-muted hover:text-accent transition-colors">{{ i18n "all_series" | default "All series" }}</a>
     <a href="{{ "/" | relLangURL }}" class="text-fg-muted hover:text-accent transition-colors">{{ i18n "back_to_home" | default "Back to Home" }}</a>
-  </div>
+  </div>  */}}
 </div>
 {{ end }}

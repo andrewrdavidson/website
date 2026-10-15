@@ -46,7 +46,23 @@
           <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 1rem; height: 1rem; margin-right: 0.25rem;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 002-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
           {{/* The same `date_month_day_format` the lists use (#14's leftover): the ordinal
                "Oct 6th 2026" was the last place the site disagreed with itself. */}}
-          {{ .Date.Format (i18n "date_month_day_format" | default "Jan 02 2006") }}
+      {{ partial "format-date-and-time.html" .Date }}
+
+              {{ $updated := .Date }}
+    {{ with .GitInfo }}{{ $updated = .AuthorDate }}{{ end }}
+    {{ with .Params.lastmod }}{{ $updated = time . }}{{ end }}
+    {{ if $updated }}
+    {{/*  <div class="article-inner pb-2 text-sm text-fg-faint flex items-center">  */}}
+    <div class="pb-2 text-sm text-fg-faint flex items-center">
+      (
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-fg-dim" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      </svg>
+       Last Updated:
+      {{ partial "format-date-and-time.html" $updated }}
+      )
+    </div>
+    {{ end }}
           <!-- Author Field from Front Matter -->
           {{ with .Params.author }}
           <div style="display: flex; align-items: center;">
@@ -125,7 +141,7 @@
          then the file's most recent git commit (hugo.toml sets enableGitInfo = true), then the
          publication date. Before enableGitInfo, .GitInfo was nil so this line simply repeated
          the post's own `date` and "Last updated" was never true (#7). */}}
-    {{ $updated := .Date }}
+    {{/*  {{ $updated := .Date }}
     {{ with .GitInfo }}{{ $updated = .AuthorDate }}{{ end }}
     {{ with .Params.lastmod }}{{ $updated = time . }}{{ end }}
     {{ if $updated }}
@@ -135,7 +151,7 @@
       </svg>
       {{ i18n "last_updated" }} {{ $updated.Format "2006-01-02" }}
     </div>
-    {{ end }}
+    {{ end }}  */}}
     
     {{/* Post history (#7): versions, dates and authors from the post's `history` front matter
          array, newest first. Shown only when there is more than one entry — a lone entry is
@@ -157,7 +173,7 @@
             {{ range sort . "date" "desc" }}
             <tr class="border-t border-line-soft">
               <td class="px-3 py-2 font-medium text-fg whitespace-nowrap">{{ .version }}</td>
-              <td class="px-3 py-2 text-fg-muted whitespace-nowrap">{{ (time .date).Format "2006-01-02" }}</td>
+              <td class="px-3 py-2 text-fg-muted whitespace-nowrap">{{ partial "format-date-and-time.html" (time .date) }}</td>
               <td class="px-3 py-2 text-fg-muted">{{ .author }}</td>
               <td class="px-3 py-2 text-fg-muted">{{ .note }}</td>
             </tr>
@@ -224,14 +240,14 @@
       {{ end }}  */}}
       
       <!-- 返回按钮 -->
-      <div class="mt-6 flex justify-center">
+      {{/*  <div class="mt-6 flex justify-center">
         <a href="{{ "/" | relLangURL }}" class="inline-flex items-center text-fg-muted hover:text-accent transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
           {{ i18n "back_to_home" }}
         </a>
-      </div>
+      </div>  */}}
     </div>
   </footer>
   {{ partial "comments.html" . }}

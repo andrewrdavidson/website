@@ -58,7 +58,8 @@
                   {{ .Title }}
                 </h3>
                 <div class="text-xs text-fg-faint">
-                  {{ .Date.Format (i18n "date_month_day_format" | default "Jan 02 2006") }}
+                  {{ partial "format-date.html" .Date }}
+                  {{/*  {{ .Date.Format (i18n "date_month_day_format" | default "Jan 02 2006") }}  */}}
                 </div>
               </a>
               {{ end }}
@@ -70,13 +71,13 @@
   </div>
 
   <!-- Back to home link -->
-  <div class="mt-10 text-center">
+  {{/*  <div class="mt-10 text-center">
     <a href="{{ "/" | relLangURL }}" class="inline-flex items-center text-fg-muted hover:text-accent transition-colors">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
       </svg>
       {{ i18n "back_to_home" | default "Back to Home" }}
     </a>
-  </div>
+  </div>  */}}
 </div>
 {{ end }}

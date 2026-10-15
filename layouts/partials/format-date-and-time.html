@@ -1,0 +1,8 @@
+{{- $day := .Day -}}
+{{- $suffix := "th" -}}
+{{- if in (slice 1 21 31) $day -}}{{- $suffix = "st" -}}
+{{- else if in (slice 2 22) $day -}}{{- $suffix = "nd" -}}
+{{- else if in (slice 3 23) $day -}}{{- $suffix = "rd" -}}
+{{- end -}}
+
+{{- printf "%d%s %s at %s" $day $suffix (.Format "January 2006") (.Format "3:04PM" | lower) -}}
