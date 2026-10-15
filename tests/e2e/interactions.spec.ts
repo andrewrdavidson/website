@@ -249,19 +249,23 @@ test('the mobile menu opens and closes without leaving the page', async ({ brows
   await context.close();
 });
 
-test.describe('the content width', () => {
-  /* 84rem for the page column and 69rem for the prose — 1.5x the theme's 56rem/46rem, asked for
-     on 2026-10-15 and set in assets/css/site.css by overriding Tailwind's container tokens plus
-     `.article-inner`.
+test.describe('the content width', () => {  /* 84rem for the page column — 1.5x the theme's 56rem, asked for on 2026-10-15 and set in
+     assets/css/site.css by overriding Tailwind's container tokens — with the article's text
+     filling its card rather than being centred in a narrower measure inside it.
 
      Measured at a viewport wide enough to reach the cap rather than read from the token alone:
      at 1600px the column is not viewport-limited, so a template that asks for a different
      container still fails here. The header and the footer are checked against `main` in the same
      pass because the reason the column is pinned at all is alignment (#30) — widening the page
-     and leaving the header behind is the regression this exists to catch. */
+     and leaving the header behind is the regression this exists to catch.
+
+     The article half pins the second half of the same request: a post's text fills its card
+     rather than sitting 112px inside it while its title sits 25px from the top, so the text's
+     left inset is asserted against the title's top inset. That comparison is the actual
+     complaint, and it is the one a `max-width` put back on `.article-inner` would break. */
   test.use({ viewport: { width: 1600, height: 1000 } });
 
-  test('the column is 84rem, the prose 69rem, and the chrome aligns with it', async ({ page }) => {
+  test('the column is 84rem, the chrome aligns with it, and a post\'s text fills its card', async ({ page }) => {
     const measure = () =>
       page.evaluate(() => {
         const box = (selector: string) => {
@@ -287,9 +291,27 @@ test.describe('the content width', () => {
     expect(home.footer?.width, 'footer aligns with the column').toBe(home.main?.width);
 
     await page.goto('/posts/using-winget/');
-    const post = await measure();
-    expect(post.card?.maxWidth, 'article card cap').toBe('1344px');
-    expect(post.prose?.maxWidth, 'prose measure cap').toBe('1104px'); // 69rem
-    expect(post.prose?.width, 'prose at 1600px').toBe(1104);
+    const post = await page.evaluate(() => {
+      const rect = (el: Element) => el.getBoundingClientRect();
+      const card = document.querySelector('article')!;
+      const prose = document.querySelector('.article-inner.article-prose')!;
+      const title = card.querySelector('h1')!;
+      const paragraph = prose.querySelector('p')!;
+      return {
+        cardLeft: Math.round(rect(card).left),
+        cardMaxWidth: getComputedStyle(card).maxWidth,
+        proseMaxWidth: getComputedStyle(prose).maxWidth,
+        textLeft: Math.round(rect(paragraph).left),
+        titleLeft: Math.round(rect(title).left),
+        titleTopInset: Math.round(rect(title).top - rect(card).top)
+      };
+    });
+    expect(post.cardMaxWidth, 'article card cap').toBe('1344px');
+    expect(post.proseMaxWidth, 'the text fills its card').toBe('none');
+    expect(post.textLeft, 'text and title share a left edge').toBe(post.titleLeft);
+    expect(
+      Math.abs(post.textLeft - post.cardLeft - post.titleTopInset),
+      `left inset (${post.textLeft - post.cardLeft}px) against the title's top inset (${post.titleTopInset}px)`
+    ).toBeLessThanOrEqual(16);
   });
 });
