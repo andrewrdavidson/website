@@ -14,7 +14,11 @@
     {{ range sort $series "latest" "desc" }}
     {{ $first := (index .term.Pages.ByDate 0).Date }}
     {{ $last := (index .term.Pages.ByDate.Reverse 0).Date }}
-    <a href="{{ .term.Page.RelPermalink }}" class="block bg-surface rounded-lg shadow-sm hover:shadow-md transition-shadow p-5 no-underline group">
+    {{/* Card settings now match the /posts/ list (fix #29): the token hairline, the accent hover
+         and the same transition, so a series card and a post card read alike in both modes.
+         `overflow-hidden` is deliberately not carried over — it is there for the post card's
+         full-cover overlay and its rounded child panels, neither of which this card has. */}}
+    <a href="{{ .term.Page.RelPermalink }}" class="block bg-surface border border-line hover:border-accent-line rounded-lg shadow-sm hover:shadow-md transition duration-300 p-5 no-underline group">
       <div class="flex items-baseline justify-between">
         <span class="text-lg font-medium text-fg group-hover:text-accent transition-colors">{{ .term.Page.Title }}</span>
         <span class="category-count-badge ml-2 bg-accent-soft text-accent px-2 py-0.5 text-xs rounded-full">{{ .term.Count }} {{ i18n "articles" | default "articles" }}</span>

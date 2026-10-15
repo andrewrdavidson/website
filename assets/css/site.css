@@ -289,6 +289,21 @@
   }
 }
 
+/* --- About page card: the token hairline, in both modes (#29) --------------------
+ * The theme gives `.about-card` a border only inside `.dark`, and that border is `--line-soft`
+ * (#1f2937, a neutral grey) rather than `--line` (#334155, the navy every other card uses), so the
+ * about page's main card was outlined grey in dark mode and not outlined at all in light — the
+ * odd one out among the site's cards. Retargeting it here leaves
+ * `themes/void/layouts/page/about.html` in the theme, rather than copying it into this repo and
+ * putting another template on the override-drift list.
+ *
+ * The `.about-card` half is needed as well as the `.dark` half: the theme's rule is `.dark
+ * .about-card` (specificity 0,2,0) and would otherwise keep winning in dark mode, and light mode
+ * had no rule at all. Equal specificity, loaded later, so these win.
+ */
+.about-card,
+.dark .about-card { border: 1px solid var(--line); }
+
 /* --- "New since your last visit" chip (#28) --------------------------------------
  * Rendered beside each card's date by layouts/index.html, layouts/_default/list.html and
  * layouts/partials/term-page.html, and revealed by assets/js/new-badge.js.

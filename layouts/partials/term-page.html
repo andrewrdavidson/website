@@ -1,19 +1,16 @@
 {{- /* Shared body of a taxonomy *term* page (e.g. /tags/powershell/ or /categories/tips/), so
        the tag and category pages cannot drift apart. Callers pass the taxonomy:
 
-         {{ partial "term-page.html" (dict "page" . "taxonomy" "tags"      "chip" "tag-chip.html") }}
-         {{ partial "term-page.html" (dict "page" . "taxonomy" "categories" "chip" "category-chip.html") }}
+         {{ partial "term-page.html" (dict "page" . "taxonomy" "tags") }}
+         {{ partial "term-page.html" (dict "page" . "taxonomy" "categories") }}
 
-       `taxonomy` is used three ways: the URL base for the chips and the "All …" link
-       (/tags/, /categories/), the front-matter key whose terms are listed on each card, and
-       the icon/i18n label choice. `chip` renders those terms so the chip vocabulary stays
-       single-sourced in partials/tag-chip.html and partials/category-chip.html.
-
-       The current term is picked out with the chip partial's `current` flag, which is what
-       makes a term page's own term stand out from its siblings. */ -}}
+       `taxonomy` is used two ways: the URL base for the "All …" link (/tags/, /categories/)
+       and the icon/i18n label choice. The cards themselves mirror the /posts/ list card,
+       including the post's tag chips — the chip vocabulary is single-sourced in
+       partials/tag-chip.html, and the term being browsed is picked out with its `current`
+       flag where it is also one of the post's tags. */ -}}
 {{- $page := .page -}}
 {{- $taxonomy := .taxonomy -}}
-{{- $chip := .chip -}}
 {{- $isCategory := eq $taxonomy "categories" -}}
 {{- $title := $page.Title -}}
 {{- $allKey := printf "all_%s" $taxonomy -}}
@@ -71,7 +68,10 @@
                 {{/* `datetime` was missing here (and on the /posts/ list): the rendered text is a
                      formatted date, which is not a valid `<time>` value, so the element said
                      nothing machine-readable. It is also what the new-badge script reads (#28). */}}
-                <time datetime="{{ .Date.Format "2006-01-02" }}" class="text-sm text-fg-faint mt-1 sm:mt-0 sm:ml-4 flex items-center">
+                <time datetime="{{ .Date.Format "2006-01-02" }}" class="text-sm text-fg-faint mt-1 sm:mt-0 sm:ml-4 flex-shrink-0 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-fg-dim" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
                   {{ .Date.Format (i18n "date_month_day_format" | default "01月02日") }}
                   {{/* "New since your last visit" (#28). Rendered hidden and switched on by
                        assets/js/new-badge.js from the date in data-post-date, so with JavaScript
@@ -81,24 +81,20 @@
               </div>
               
               {{ with partial "summary.html" . }}
-              <div class="text-fg-muted text-sm">{{ . }}</div>
+              <div class="text-fg-muted text-sm line-clamp-2">{{ . }}</div>
               {{ end }}
-              
-              {{ with index .Params $taxonomy }}
-              <div class="mt-3 flex flex-wrap gap-2 relative z-20">
-                {{ range . }}
-                {{ partial $chip (dict "term" . "current" (eq . $title)) }}
-                {{ end }}
-              </div>
-              {{ end }}
-              
-              <div class="mt-4">
-                <span class="text-accent text-sm inline-flex items-center group-hover:translate-x-1 transition-transform duration-300">
-                  {{ i18n "list_read_more" | default "阅读全文" }}
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </span>
+              {{/* Action row, the same shape as the /posts/ list card: this post's tags on the left, the
+                   shared READ POST button on the right. It is the same row, the same button and the same
+                   chips, so a card here and a card there read alike — the term you are browsing is picked
+                   out where it is also one of the post's tags. Sits above the card's full-cover anchor
+                   (relative z-20) so the chips and the button stay clickable. */}}
+              <div class="mt-4 flex flex-wrap items-end justify-between gap-3 relative z-20">
+                <div class="flex flex-wrap gap-2">
+                  {{ range .Params.tags }}
+                  {{ partial "tag-chip.html" (dict "term" . "current" (eq . $title)) }}
+                  {{ end }}
+                </div>
+                {{ partial "read-more.html" . }}
               </div>
             </div>
           </div>

@@ -9,7 +9,9 @@
   
   <!-- 标签云. Chips (and their count badges) are neutrally grey and only lightly rounded,
        matching the shared tag chip used on /posts/ and the homepage. See fix #17. -->
-  <div class="bg-surface shadow-sm rounded-lg p-6">
+  {{/* The panel is a card like the others, so it wears the same token hairline (#29): without it
+       the tag cloud's only edge in dark mode was the fill boundary against the canvas. */}}
+  <div class="bg-surface border border-line shadow-sm rounded-lg p-6">
     <div class="flex flex-wrap gap-3 justify-center">
       {{ range .Data.Terms.ByCount }}
         <a href="{{ .Page.RelPermalink }}" class="group">

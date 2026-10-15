@@ -5,7 +5,8 @@
        its own title: 18 cards for a category holding 8 or 10. See fix #6 in
        docs/BlogIssues-Fixes.md.
 
-       Same shared body as the tag term page; `taxonomy` drives the URL base, the front-matter
-       key whose terms are listed on each card, and the icon and "All categories" link. */}}
-  {{ partial "term-page.html" (dict "page" . "taxonomy" "categories" "chip" "category-chip.html") }}
+       Same shared body as the tag term page; `taxonomy` drives the URL base and the icon and
+       "All categories" link. The cards are the shared /posts/ card, so a post reads the same
+       here as it does on the listing — tags included. */}}
+  {{ partial "term-page.html" (dict "page" . "taxonomy" "categories") }}
 {{ end }}

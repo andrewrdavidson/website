@@ -19,7 +19,13 @@
   <div class="article-layout{{ if $hasToc }} has-toc{{ end }}">
   <div class="article-main min-w-0">
   
-  <article class="max-w-4xl mx-auto bg-surface overflow-hidden" style="border: 1px solid #babcbf; border-radius: 0.25rem; box-shadow: none;">
+  {{/* The article card's hairline was an inline literal: `style="border: 1px solid #babcbf"`.
+       A hex colour cannot flip, so in dark mode the main card kept a light-grey outline while
+       every other card on the site showed the token navy (#29) — the same fault #1 fixed on the
+       homepage one level up. `border-line` is that token, `rounded` keeps the 0.25rem radius the
+       inline rule set, and dropping `box-shadow: none` changes nothing: no shadow utility is
+       applied here, so the computed shadow is already none. */}}
+  <article class="max-w-4xl mx-auto bg-surface border border-line rounded overflow-hidden">
     
     <!-- Removed the border-bottom style completely to clear the line -->
     <header class="relative" style="border-bottom: none;">

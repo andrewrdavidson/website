@@ -1,6 +1,7 @@
 {{ define "main" }}
   {{/* Tag term page. The body lives in partials/term-page.html, shared with the category term
        page (layouts/taxonomy/category.html), so the two can only differ by the values passed
-       below — tag chips with the current tag picked out, on /tags/<term>/. */}}
-  {{ partial "term-page.html" (dict "page" . "taxonomy" "tags" "chip" "tag-chip.html") }}
+       below — the URL base and the icon/label. On /tags/<term>/ the tag you are browsing is
+       picked out on each card, because the cards carry the post's tags. */}}
+  {{ partial "term-page.html" (dict "page" . "taxonomy" "tags") }}
 {{ end }}

@@ -31,7 +31,10 @@
     {{ $recent := first 5 ((where .Site.RegularPages "Section" "in" (slice "posts" "series")).ByDate.Reverse) }}
     <div class="space-y-3 mb-2">
       {{ range $recent }}
-      <div class="p-6 transition-shadow duration-200 bg-surface border border-line rounded">
+      {{/* Cards highlight their border on hover, the same green the /posts/ and term-page cards
+           use (#29 follow-up): `hover:border-accent-line` needs a border-colour transition, so
+           `transition-shadow` becomes `transition` — otherwise the outline snaps. */}}
+      <div class="p-6 transition duration-200 bg-surface border border-line hover:border-accent-line rounded">
         {{/*  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);  */}}
         <h3 class="text-2xl font-semibold text-fg">
           {{ .Title }}
@@ -130,7 +133,10 @@
         {{ $homeSeries = $homeSeries | append (dict "term" $taxonomy "latest" (index $taxonomy.Pages.ByDate.Reverse 0).Date.Unix) }}
       {{ end }}
       {{ range $idx, $s := sort $homeSeries "latest" "desc" }}
-      <div class="p-6 transition-shadow duration-200 bg-surface border border-line rounded">
+      {{/* Cards highlight their border on hover, the same green the /posts/ and term-page cards
+           use (#29 follow-up): `hover:border-accent-line` needs a border-colour transition, so
+           `transition-shadow` becomes `transition` — otherwise the outline snaps. */}}
+      <div class="p-6 transition duration-200 bg-surface border border-line hover:border-accent-line rounded">
         
         <!-- Top Row: Series Title and Interactive Toggle Pill Button -->
         <div style="display: flex; align-items: center; justify-content: space-between;">
