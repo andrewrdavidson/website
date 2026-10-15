@@ -32,6 +32,7 @@ find exhaustively, and a Hugo build cannot see at all:
 | `og:locale` is `en_GB` and `og:image` is present and absolute | the theme hardcoded `en_US` and emitted no image at all; both are read from the site now |
 | every internal link, asset and anchor resolves | a slug typo or a moved page is a 404 for a reader and invisible to a Hugo build |
 | no pruned path is back in the build | 6.6 MB of CJK slices and four icons the theme ships were being deployed; `npm run prune` removes them and this is what notices if that stops |
+| `robots.txt` declares an absolute sitemap, and `sitemap.xml` agrees with it | the two are only worth anything as a pair: Hugo's built-in robots.txt names no sitemap, and the sitemap is generated with no template of its own, so nothing else here would notice it listing a dead URL or a different origin than the one robots advertises |
 
 Pagination aliases (`…/page/1/`) are meta-refresh stubs and are skipped. `hugo server` writes to
 `public/` by default and injects `/livereload.js` into every page — the link check ignores that one

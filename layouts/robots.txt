@@ -1,11 +1,13 @@
 # Overrides Hugo's built-in robots.txt, which is the single line "User-agent: *" and nothing else.
 #
-# The difference is the Sitemap line: without it a crawler has to guess the sitemap's location
-# (and Google's documentation, which is what every crawler follows, says to declare it here or
-# submit it by hand). Hugo generates public/sitemap.xml with `enableRobotsTXT = true`, so this is
-# the only place the two are connected.
+# The difference is the Sitemap line: without it a crawler has to guess where the sitemap is (the
+# protocol says to declare it here or submit it by hand), and this site's sitemap is generated on
+# its own by Hugo — `enableRobotsTXT = true` in hugo.toml is what renders *this* file, it has
+# nothing to do with sitemap.xml. So this line is the only thing connecting the two files.
 #
-# `absURL` rather than RelPermalink: the sitemap line must be absolute, and Hugo's default
-# 600-second robots.txt cache is irrelevant either way at this size.
+# `absURL` rather than RelPermalink: that line must be an absolute URL, and a relative one is
+# ignored. The origin therefore follows `baseURL` — https://kelrys.com in a deploy build and
+# http://localhost:8081 in a test build, which is what tests/check-html.mjs expects when it
+# compares it with the URLs in sitemap.xml.
 User-agent: *
 Sitemap: {{ "sitemap.xml" | absURL }}
