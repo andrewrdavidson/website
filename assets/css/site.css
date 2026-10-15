@@ -1,0 +1,321 @@
+/* Site-level style overrides.
+ *
+ * Loaded after the theme stylesheet (see layouts/partials/head/css.html), so it can
+ * retarget theme tokens and override theme rules without editing themes/void, keeping
+ * the theme a pristine mirror of upstream that can be upgraded at will.
+ *
+ * Contents: callout alert palette (extracted from the old forked theme main.css),
+ *           the earthy-green accent ramp, the blue spots the theme hard-codes, and the two
+ *           palette classes the theme still bakes into a taxonomy template.
+ */
+
+/* --- Callout Alert Colors Configuration --- */
+
+/* --- 1. Base Fallback Defaults (MUST GO FIRST) --- */
+/* Base Fallback Defaults */
+.callout { background-color: #f1f5f9; color: #1e293b; }
+.callout .callout-icon i { color: #475569 !important; }
+
+/* --- 2. Specific Alert Themes (Overwrites the default) --- */
+
+/* Info Theme (Blue) */
+.callout.callout-info { background-color: #e6f0fa; }
+.callout.callout-info .callout-icon i { color: #1d4ed8 !important; }
+
+/* Tip Theme (Green — tracks the site hue, see the accent ramp below). */
+.callout.callout-tip { background-color: #e8eed9; }
+.callout.callout-tip .callout-icon i { color: #4a6a2c !important; }
+.callout-tip .callout-header { color: #3a5423; }
+
+/* Warning Theme (Fixed to a Soft Pastel Yellow) */
+.callout.callout-warning { background-color: #fef9c3; } /* Softer, lighter pastel yellow */
+.callout.callout-warning .callout-icon i { color: #854d0e !important; } /* Softened dark gold icon */
+
+/* Danger Theme (Red) */
+.callout.callout-danger { background-color: #fee2e2; }
+.callout.callout-danger .callout-icon i { color: #b91c1c !important; }
+
+/* Note Theme (Soft Pastel Slate/Steel Blue) */
+.callout.callout-note { background-color: #e2e8f0; } /* Deeper, richer pastel slate gray */
+.callout.callout-note .callout-icon i { color: #1e293b !important; } /* Dark slate icon for solid contrast */
+
+
+/* Thought Theme (Soft Pastel Purple/Lavender) */
+.callout.callout-thought { background-color: #f3e8ff; } /* Soft purple tint */
+.callout.callout-thought .callout-icon i { color: #6b21a8 !important; }
+
+/* Neutral Theme (Purple/Indigo Fallback) */
+.callout.callout-neutral { background-color: #e0e7ff; }
+.callout.callout-neutral .callout-icon i { color: #4338ca !important; }
+
+/* --- 3. Dark-mode alert themes -------------------------------------------------
+ * The rules above are plain (unscoped) and sit later in the cascade than the theme's dark
+ * variants at equal specificity, so they also matched inside `.dark`: every callout on a dark
+ * page rendered its *light* fill, and the theme's own `.dark .callout-*` fills were dead code.
+ * Stating the dark palette here, once, leaves light mode untouched and keeps all seven variants
+ * in one place rather than scattering `.dark` pairs through the list above.
+ *
+ * The icon rules carry `!important` because the light icon colours above do, and `!important`
+ * wins wherever it appears. Header colours are needed only for `note` and `thought`, which the
+ * theme never had: the theme ships dark header rules for its own five variants and those still
+ * apply, since their specificity beats the light header rules. `tip` is overridden here because
+ * its colour is the site's hue, not the theme's mint.
+ */
+.dark .callout { color: var(--fg); }   /* the theme's `.dark .callout` sets no text colour */
+/* Fallback icon for a callout whose variant the palette does not cover (the shortcode can emit
+   `idea`, and a typo in `type`/`{.note}` gets here too). Measured without it: the light literal
+   #475569 on the theme's dark fallback fill is 2.3:1 — the same bug in miniature. Must stay
+   before the variant rules: at equal specificity the later one wins. */
+.dark .callout .callout-icon i { color: #cbd5e1 !important; }
+
+.dark .callout-info { background-color: rgba(59, 130, 246, 0.20); }
+.dark .callout-info .callout-icon i { color: #bfdbfe !important; }
+
+.dark .callout-tip { background-color: rgba(138, 168, 94, 0.18); }
+.dark .callout-tip .callout-icon i { color: #a9c583 !important; }
+.dark .callout-tip .callout-header { color: #cbdfa9; }
+
+.dark .callout-warning { background-color: rgba(217, 119, 6, 0.25); }
+.dark .callout-warning .callout-icon i { color: #fcd34d !important; }
+
+.dark .callout-danger { background-color: rgba(239, 68, 68, 0.22); }
+.dark .callout-danger .callout-icon i { color: #fecaca !important; }
+
+.dark .callout-note { background-color: rgba(148, 163, 184, 0.22); }
+.dark .callout-note .callout-icon i { color: #cbd5e1 !important; }
+.dark .callout-note .callout-header { color: #cbd5e1; }
+
+.dark .callout-thought { background-color: rgba(168, 85, 247, 0.20); }
+.dark .callout-thought .callout-icon i { color: #e9d5ff !important; }
+.dark .callout-thought .callout-header { color: #e9d5ff; }
+
+/* The light `neutral` is indigo (#e0e7ff / #4338ca), so its dark form is indigo too, not the
+   theme's grey. */
+.dark .callout-neutral { background-color: rgba(99, 102, 241, 0.20); }
+.dark .callout-neutral .callout-icon i { color: #c7d2fe !important; }
+.dark .callout-neutral .callout-header { color: #c7d2fe; }
+
+/* Callouts keep their own hues: they are semantic (info / tip / warning / danger), not brand
+   accent, so they stay out of the ramp below. The one exception is `tip`, whose only colour *is*
+   green — it follows the site hue so a post can't keep a mint block after the ramp moves. The
+   other variants (blue, yellow, red, slate, purple) are untouched, in dark mode too. */
+
+
+/* --- Accent palette: earthy green -------------------------------------------
+ * The theme ships a blue accent ramp (#2563eb and friends). Retargeting the five
+ * --accent* custom properties recolours everything derived from them: prose links,
+ * link hovers, TOC active/hover fills, tag and count badges, Pagefind results and
+ * the focus rings built from the tokens. Overriding the tokens rather than each
+ * rule keeps themes/void a pristine mirror, and any future theme rule that uses
+ * the ramp follows automatically.
+ *
+ * Hues here are moss/olive (~95°) rather than the mint/emerald (~160°) these values used to
+ * carry: yellower, less saturated, so highlights read as natural green rather than mint. Every
+ * ratio below was measured against the surface it actually sits on (theme tokens: light canvas
+ * #f9fafb / surface #ffffff, dark canvas #0b1220 / surface #0f172a).
+ */
+:root {
+  --accent: #4a6a2c;         /* links: 5.9:1 on canvas, 6.2:1 on cards — was 4.8:1 */
+  --accent-strong: #3a5423;  /* link hover, emphasised links: 8.5:1 on cards */
+  --accent-soft: #eef1e1;    /* tinted fills: a tint (1.15:1 on white), not a slab */
+  --accent-soft-2: #dde5c8;  /* deeper tint: hover fills, badge gradients */
+  --accent-line: #7f9655;    /* tinted borders and focus rings: 3.3:1 on white, 3.1:1 on
+                                canvas — clears the 3:1 non-text minimum the old #86efac
+                                missed at 1.4:1 */
+}
+.dark {
+  --accent: #a9c583;         /* links: 9.8:1 on canvas, 9.4:1 on cards */
+  --accent-strong: #cbdfa9;  /* emphasised links, chip text: 9.4:1 on the tint below */
+  --accent-soft: rgba(138, 168, 94, 0.18);
+  --accent-soft-2: rgba(138, 168, 94, 0.30);
+  --accent-line: #8aa85e;    /* 6.6:1 on the chip fill, 6.6:1 on surface-2 */
+}
+
+/* --- Blue spots the theme hard-codes outside the ramp -------------------------
+ * Equal specificity, loaded later, so these win. Each replacement is the green
+ * shade sitting where the blue one did.
+ */
+.prose blockquote { border-left-color: var(--accent-line); }   /* was border-blue-500 */
+.dark .prose blockquote { border-color: var(--accent-line); }  /* was #60a5fa */
+.heading-anchor:hover { color: var(--accent); }                /* was #2563eb */
+.theme-toggle-btn:hover { color: var(--accent); }              /* was #2563eb */
+.dark .theme-toggle-btn:hover { color: var(--accent-strong); } /* was #93c5fd */
+.theme-toggle-btn:focus-visible { box-shadow: 0 0 0 3px rgba(127, 150, 85, 0.45); } /* was blue */
+.toc-nav a:focus-visible { outline-color: var(--accent-line); } /* was #93c5fd */
+.skip-link { background-color: var(--accent); }                /* was #1d4ed8; white on it is 6.2:1 */
+.skip-link:focus { outline-color: var(--accent-line); }        /* was #93c5fd */
+.heading-anchor.copied { color: var(--accent); }               /* was #16a34a */
+
+/* Dark-mode year badge: give it the same accent tint light mode uses, instead of a
+   slate gradient with pale-blue numerals. box-shadow is left to the theme rule. */
+.dark .year-indicator-badge {
+  background: linear-gradient(135deg, var(--accent-soft) 0%, var(--accent-soft-2) 100%) !important;
+  color: var(--accent-strong) !important;
+}
+
+/* --- Homepage / list chip and CTA components ----------------------------------
+ * These were inline `style="…"` attributes, which cannot carry a dark variant, so the
+ * buttons kept their light-mode colours on a dark card. Moving them here fixes #20, #21
+ * and #22 while leaving light mode exactly as it was. Their hover states were inline
+ * onmouseover/onmouseout JavaScript, which never fired for keyboard users, so they are
+ * now real :hover rules with :focus-visible outlines alongside.
+ */
+.btn-read-more {
+  display: inline-flex; align-items: center;
+  font-size: .75rem; font-weight: 500;
+  padding: .375rem .75rem; border-radius: .25rem;
+  background-color: var(--accent); border: 1px solid var(--accent); color: #ffffff;
+  text-decoration: none; white-space: nowrap;
+  transition: background-color .2s ease, border-color .2s ease;
+}
+.btn-read-more:hover { background-color: var(--accent-strong); border-color: var(--accent-strong); }
+.btn-read-more:focus-visible { outline: 2px solid var(--accent-line); outline-offset: 2px; }
+.dark .btn-read-more { background-color: var(--accent-soft); border-color: var(--accent-line); color: var(--accent-strong); }
+.dark .btn-read-more:hover { background-color: var(--accent-soft-2); border-color: var(--accent-line); }
+
+.btn-view-all {
+  display: inline-flex; align-items: center;
+  font-size: .8rem; font-weight: 400; text-transform: uppercase;
+  padding: .5rem 1rem; border-radius: .25rem;
+  background-color: #fef3c7; border: 1px solid #fde68a; color: #92400e;
+  text-decoration: none;
+  transition: background-color .2s ease, border-color .2s ease;
+}
+.btn-view-all:hover { background-color: #fde68a; border-color: #fcd34d; }
+.btn-view-all:focus-visible { outline: 2px solid #fcd34d; outline-offset: 2px; }
+.dark .btn-view-all { background-color: rgba(251, 191, 36, 0.14); border-color: rgba(251, 191, 36, 0.38); color: #fcd34d; }
+.dark .btn-view-all:hover { background-color: rgba(251, 191, 36, 0.24); border-color: #fbbf24; }
+
+.btn-series-toggle {
+  cursor: pointer; display: inline-flex; align-items: center;
+  font-size: .75rem; font-weight: 600;
+  padding: .25rem .75rem; border-radius: 2px;
+  background-color: #f7f5f2; border: 1px solid #e7e1d7; color: #78350f;
+  transition: background-color .2s ease, border-color .2s ease;
+}
+.btn-series-toggle:hover { background-color: #eedcd3; border-color: #d9c9bf; }
+.btn-series-toggle:focus-visible { outline: 2px solid #d9c9bf; outline-offset: 2px; }
+.dark .btn-series-toggle { background-color: rgba(120, 53, 15, 0.38); border-color: rgba(231, 225, 215, 0.28); color: #f5d9bd; }
+.dark .btn-series-toggle:hover { background-color: rgba(120, 53, 15, 0.55); border-color: rgba(231, 225, 215, 0.45); }
+
+/* --- Greens the theme bakes into two templates ---------------------------------
+ * These are Tailwind palette literals in markup rather than tokens, so they cannot follow the
+ * ramp on their own. Both elements already carry a class of their own, so they are retargeted
+ * from here rather than by copying whole templates into layouts/ — a copy would land on the
+ * override-drift list for no reason (see the appendix of docs/BlogIssues-Fixes.md).
+ */
+
+/* layouts/taxonomy/category.terms.html (the /categories/ index count badge) was
+   `bg-green-50 text-green-600`: a mint pill that stayed mint on a dark card. The dark rule has
+   to repeat the !important, because the theme pins that state the same way in theme main.css
+   (`.dark .category-count-badge { … !important }`) — as does `.dark .year-indicator-badge`
+   above. Without it the badge silently stays mint, which is what happened on the first try. */
+.category-count-badge { background-color: var(--accent-soft); color: var(--accent); }
+.dark .category-count-badge { background-color: var(--accent-soft) !important; color: var(--accent) !important; }
+
+/* layouts/taxonomy/series.html (the numeral beside each part) was `text-green-200`,
+   i.e. 1.4:1 on a white card and a bright mint numeral in dark mode. The line/accent pair
+   keeps it a quiet numeral in both modes and warms it on hover. */
+.series-index { color: var(--accent-line); }
+.group:hover .series-index { color: var(--accent); }
+
+/* --- Header logo (#27) ---------------------------------------------------------
+ * The artwork is docs/k2.png, shipped as a 56px asset by layouts/partials/header.html. It is
+ * fully opaque: a pure-white plate with the near-black K inset to 45% x 77% of the frame, so
+ * used as-is it is a bright white square on the dark header. Rather than crop or recolour the
+ * file, each mode makes the plate a no-op — which works exactly here because the art really is
+ * two tones, 255 and ~0 (measured from the source pixels, not assumed):
+ *
+ *   light: `multiply` is the identity for white, so the plate blends into the header and only
+ *          the black K shows;
+ *   dark:  `invert(1)` takes the plate to pure black and the K to pure white, and `screen` is
+ *          then the identity for black, leaving the white K on the header.
+ *
+ * Both blend steps are identity operations against *any* backdrop colour, so this keeps working
+ * if --surface changes, and there is no halo: the header behind the logo is unchanged pixel for
+ * pixel (verified by screenshot in both modes). A plain `.dark .site-logo { filter: invert(1) }`
+ * also fixes the white plate, but it leaves a black square on the header; this leaves the glyph.
+ */
+.site-logo { mix-blend-mode: multiply; }
+.dark .site-logo { filter: invert(1); mix-blend-mode: screen; }
+
+/* --- Header "Posts" dropdown (#25) --------------------------------------------
+ * The theme ships a child-menu branch, but it can never open: its `group-hover:block` needs a
+ * `group` ancestor and nothing in the header had one, and there was no focus or touch path
+ * either. This is the site's own markup, opened by CSS rather than a variant utility so the
+ * keyboard works with no JavaScript — :focus-within holds it open while focus is inside the item,
+ * which is what makes tabbing through the links possible. Below 40rem the nav is the theme's
+ * hamburger panel, so there the list renders inline and always visible, since hover does not
+ * exist on touch.
+ */
+.nav-item { position: relative; }
+
+.nav-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 20;
+  min-width: 11rem;
+  padding: .25rem 0;
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: .25rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, .14);
+}
+.dark .nav-dropdown { background-color: var(--surface-2); }
+.nav-item:hover > .nav-dropdown,
+.nav-item:focus-within > .nav-dropdown { display: block; }
+
+.nav-dropdown a {
+  display: block;
+  padding: .375rem .75rem;
+  color: var(--fg-muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.nav-dropdown a:hover,
+.nav-dropdown a:focus-visible { background-color: var(--hover); color: var(--fg-strong); }
+
+@media (max-width: 39.99rem) {
+  .nav-dropdown {
+    display: block;
+    position: static;
+    min-width: 0;
+    padding: 0 0 0 .75rem;
+    border: 0;
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
+/* --- "New since your last visit" chip (#28) --------------------------------------
+ * Rendered beside each card's date by layouts/index.html, layouts/_default/list.html and
+ * layouts/partials/term-page.html, and revealed by assets/js/new-badge.js.
+ *
+ * It ships hidden twice over, so it cannot appear without the script: `display: none` here, and
+ * the `hidden` attribute in the markup (whose UA rule covers a page whose stylesheet never
+ * loaded). The shown state is keyed on `data-new`, which outranks both — a rule setting
+ * `display` on `.chip-new` alone would lose to nothing but would win over the UA `[hidden]`
+ * rule, which is the trap this avoids. The script removes the attribute as well, so the reason
+ * the chip is visible is not also the reason it stays invisible.
+ *
+ * Colours are the site accent in both modes, the same pair the READ POST button uses, so the
+ * chip reads as part of the site rather than as a second colour scheme: white on --accent is
+ * 6.2:1 in light mode, and in dark the tinted fill keeps --accent-strong text at 9.4:1.
+ */
+.chip-new {
+  display: none;
+  align-items: center;
+  font-size: .6875rem; font-weight: 600; line-height: 1;
+  letter-spacing: .04em; text-transform: uppercase;
+  padding: .2rem .4rem; border-radius: .25rem;
+  background-color: var(--accent); color: #ffffff;
+  white-space: nowrap;
+}
+.chip-new[data-new] { display: inline-flex; }
+.dark .chip-new {
+  background-color: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  color: var(--accent-strong);
+}
