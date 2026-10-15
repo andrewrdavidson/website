@@ -4,7 +4,7 @@ draft = true
 title = 'Move Windows 11 Virtual Machine to a new Hyper-V host'
 description = 'How to move a Windows 11 virtual machine with vTPM to a new Hyper-V host while preserving the TPM certificates.'
 tags = ['Windows 11', 'vTPM', 'TPM', 'Hyper-V', 'Shielded Certificate']
-categories = ['Tips']
+categories = ['Articles']
 author = 'Andrew Davidson'
 summary = 'Move a Windows 11 Virtual Machine between Hyper-V hosts by exporting and re-importing the Shielded Virtual Machine certificates so the virtual TPM remains valid.'
 +++

@@ -4,7 +4,7 @@ draft = true
 title = 'Getting I219V drivers to work in Server 2022/25'
 description = 'This is the first post'
 tags = ['Network Driver', 'Intel', 'Intel I219-V', 'I219-V']
-categories = ['Tips']
+categories = ['Articles']
 author = 'Andrew Davidson'
 summary = 'How I got the Intel I219-V network drivers working on Windows Server 2022/2025, including driver pack download, .inf file editing, and SecureBoot/UEFI considerations.'
 +++

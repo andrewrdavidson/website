@@ -4,7 +4,7 @@ draft = true
 title = 'Using winget on Windows'
 description = 'Use winget to install, update, search for, and manage software packages from the command line on Windows.'
 tags = ['winget', 'PowerShell', 'Windows', 'Software', 'Package Manager']
-categories = ['Tips']
+categories = ['Articles']
 author = 'Andrew Davidson'
 summary = 'Use Windows Package Manager to install apps, check for updates, search the catalog, and manage software from the command line.'
 +++

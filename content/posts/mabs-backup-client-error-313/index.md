@@ -4,7 +4,7 @@ draft = true
 title = 'MABS backup client error 313'
 description = 'Fix the MABS backup client installation error 313 by installing the required Visual C++ runtime before the client setup runs.'
 tags = ['MABS', 'Backup', 'Error 313', 'Visual C++', 'Windows Server']
-categories = ['Tips']
+categories = ['Articles']
 author = 'Andrew Davidson'
 summary = 'Resolve the MABS backup client installation error 313 by installing the required Visual C++ runtime on the server before retrying the client setup.'
 +++
