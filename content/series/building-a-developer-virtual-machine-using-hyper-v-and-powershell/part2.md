@@ -7,7 +7,7 @@ tags = ['PowerShell', 'Virtual Machine', 'Hyper-V']
 categories = ['Series']
 author = 'Andrew Davidson'
 summary = 'Second post in the Second Series: Introduction.'
-series = 'Building a Developer Virtual Machine using Hyper-V and PowerShell'
+series = 'building-a-developer-virtual-machine-using-hyper-v-and-powershell'
 +++
 
 ## What I'm going to do in this post

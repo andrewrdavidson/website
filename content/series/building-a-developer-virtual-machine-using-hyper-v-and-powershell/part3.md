@@ -7,7 +7,7 @@ tags = ['PowerShell', 'Virtual Machine', 'Hyper-V']
 categories = ['Series']
 author = 'Andrew Davidson'
 summary = 'Third post in the Second Series: Introduction.'
-series = 'Building a Developer Virtual Machine using Hyper-V and PowerShell'
+series = 'building-a-developer-virtual-machine-using-hyper-v-and-powershell'
 +++
 
 ## Install the Operating System
@@ -301,39 +301,39 @@ Get-AppxPackage | ? {$_.Name -like 'Microsoft.WindowsFeedbackHub*'} | Remove-App
 Get-AppxProvisionedPackage -Online | ? {$_.DisplayName -Like 'Microsoft.WindowsFeedbackHub'} | Remove-AppxProvisionedPackage -Online
 ```
 
-# Start Location
+## Start Location
 
 HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced
 Create LaunchTo and set to 1 for This PC, 2 for Quick Access, 3 for Downloads folder, 4 OneDrive folder
 
 Set-RegistryKey -RegistryPath 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'LaunchTo' -Value '1' -Type 'Dword'
 
-# Get Rid of "Home Page" in explorer
+## Get Rid of "Home Page" in explorer
 
 Set-RegistryKey -RegistryPath 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer' -Name 'HubMode' -Value '1' -Type 'Dword'
 
 HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace
 Remove key {f874310e-b6b7-47dc-bc84-b9e6b38f5903}
 
-# Show file extensions
+## Show file extensions
 
 Set-RegistryKey -RegistryPath 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'HideFileExt' -Value '0' -Type 'Dword'
 
-# Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+## Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced
 
-# Set HideFileExt key to 0 (or create new DWORD 32)
+## Set HideFileExt key to 0 (or create new DWORD 32)
 
-# Show hidden files
+## Show hidden files
 
 Set-RegistryKey -RegistryPath 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'Hidden' -Value '1' -Type 'Dword'
 
-# Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+## Computer\HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced
 
-# Set Hidden key to 1 (or create new DWORD 32)
+## Set Hidden key to 1 (or create new DWORD 32)
 
 Create default settings files for VSCode, Terminal
 
-# Remove crap from Windows 11
+## Remove crap from Windows 11
 
 function Remove-SelectedAppXPackages {
 
@@ -343,11 +343,11 @@ $unwantedApps = (
     "Microsoft.MicrosoftOfficeHub"
 )
 
-# Remove advertising.xaml due to multiple outs, x32 & x64, fails with current foreach loop
+## Remove advertising.xaml due to multiple outs, x32 & x64, fails with current foreach loop
 
 Get-AppxPackage -Name microsoft.advertising.xaml -ErrorAction SilentlyContinue| Remove-AppxPackage -ErrorAction SilentlyContinue
 
-# Remove user apps
+## Remove user apps
 
 foreach ($app in $unwantedApps) {
     try {

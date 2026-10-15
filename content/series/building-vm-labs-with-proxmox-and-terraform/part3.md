@@ -7,7 +7,7 @@ tags = ['Virtual Machine', 'Lab', 'Proxmox', 'Terraform']
 categories = ['Series']
 author = 'Andrew Davidson'
 summary = 'Introduction: An overview of what we are going to be doing in this series.'
-series = 'Building a virtual machine lab with Proxmox and terraform'
+series = 'building-vm-labs-with-proxmox-and-terraform'
 +++
 
 ## Introduction
