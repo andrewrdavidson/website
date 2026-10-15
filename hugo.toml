@@ -2,6 +2,10 @@ baseURL = 'https://kelrys.com/'
 defaultContentLanguage = 'en'   # UI language: picks i18n/en.toml
 hasCJKLanguage = true           # correct word counts / summaries for Chinese content
 enableRobotsTXT = true
+# Real last-modified dates. Without this, .GitInfo is nil and .Lastmod silently falls back
+# to the post's own `date`, so "Last updated on" just repeated the publication date (#7).
+# CI checks out with fetch-depth: 0, so the commit dates are available there too.
+enableGitInfo = true
 title = 'kelrys.com'
 theme = "void"
 
@@ -102,6 +106,10 @@ weight = 40
   category = "categories"
   tag = "tags"
   series = "series"
+
+# How many posts each page of the /posts/ list shows (see layouts/_default/list.html).
+[pagination]
+  pagerSize = 20
 
 [related]
   threshold = 80

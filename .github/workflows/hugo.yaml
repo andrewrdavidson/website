@@ -121,6 +121,20 @@ jobs:
             --baseURL "${{ steps.pages.outputs.base_url }}/" \
             --cacheDir "${{ runner.temp }}/.cache/hugo"
 
+      - name: Build the search index
+        run: |
+          echo "Building the Pagefind search index..."
+          # Search runs client-side and needs an index that only exists after the Hugo build,
+          # which is why /search/ is a 404 without this step. `pagefind` is a devDependency,
+          # so npm ci above provides it; the index lands in public/pagefind/, where the
+          # theme's search page (/pagefind/pagefind-ui.js) expects to find it.
+          #
+          # --force-language: Pagefind splits its index by each page's <html lang>, and the
+          # About page declares `language = 'en'` in front matter (which layouts/_default/
+          # baseof.html renders as lang="en"), so without this the site indexes as two
+          # languages and the en-GB search UI can never return About. One index, one language.
+          npx pagefind --site public --output-subdir pagefind --force-language en-GB
+
       - name: Cache save
         uses: actions/cache/save@v6
         with:
