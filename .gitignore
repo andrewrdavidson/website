@@ -13,4 +13,10 @@ hugo.linux
 # Temporary lock file while building
 /.hugo_build.lock
 
-# End of https://www.toptal.com/developers/gitignore/api/hugo
+# node modules
+node_modules/
+
+# development process logs (temporary files)
+.tmp-devserver.log
+.tmp-verify-server.log
+.tmp-search/
