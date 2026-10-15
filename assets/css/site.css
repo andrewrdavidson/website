@@ -313,11 +313,12 @@ than shrinking the page column, which would narrow every card on the site with i
 .dark .btn-series-toggle { background-color: rgba(120, 53, 15, 0.38); border-color: rgba(231, 225, 215, 0.28); color: #f5d9bd; }
 .dark .btn-series-toggle:hover { background-color: rgba(120, 53, 15, 0.55); border-color: rgba(231, 225, 215, 0.45); }
 
-/* --- Greens the theme bakes into two templates ---------------------------------
- * These are Tailwind palette literals in markup rather than tokens, so they cannot follow the
- * ramp on their own. Both elements already carry a class of their own, so they are retargeted
- * from here rather than by copying whole templates into layouts/ — a copy would land on the
- * override-drift list for no reason (see the appendix of docs/BlogIssues-Fixes.md).
+/* --- Greens the theme bakes into its templates ---------------------------------
+ * These are Tailwind palette literals — in markup, or in the theme's own stylesheet — rather
+ * than tokens, so they cannot follow the ramp on their own. Every element here already carries a
+ * class of its own, so they are retargeted from here rather than by copying whole templates into
+ * layouts/ — a copy would land on the override-drift list for no reason (see the appendix of
+ * docs/BlogIssues-Fixes.md).
  */
 
 /* layouts/taxonomy/category.terms.html (the /categories/ index count badge) was
@@ -333,6 +334,25 @@ than shrinking the page column, which would narrow every card on the site with i
    keeps it a quiet numeral in both modes and warms it on hover. */
 .series-index { color: var(--accent-line); }
 .group:hover .series-index { color: var(--accent); }
+
+/* The article header's share button flashes a "Copied!" pill when the link reaches the clipboard
+   (themes/void/assets/js/modules/share.js toggles `.is-success`). Its success state was the last
+   mint/emerald pair in the article chrome — `#047857` on a 10% `#10b981` tint, and `#86efac` on
+   16% `#16a34a` in dark mode — because that colour sits in the theme's own stylesheet (main.css
+   `.share-trigger.is-success`, not a token) so the ramp could not reach it. It is the accent pill
+   now: the --accent-soft fill with --accent-strong text the category and tag chips use in both
+   modes (and `.chip-new` and the READ POST button in dark), at 7.4:1 in light mode (was 4.99:1)
+   and 9.35:1 in dark.
+
+   The dark rule is not redundant. The theme's dark success rule is `.dark .share-trigger.is-success`
+   (0,3,0) and would beat a bare `.share-trigger.is-success` (0,2,0) here whatever the load order —
+   the same trap `.dark .category-count-badge` and `.dark .btn-read-more` are written around. A
+   side effect worth knowing: because these rules now come last, the flash no longer turns grey in
+   the theme's `.share-trigger:hover` if the pointer is still over the button when it fires.
+
+   The error state stays red. It is not a green, and red-means-failed reads correctly. */
+.share-trigger.is-success { background-color: var(--accent-soft); color: var(--accent-strong); }
+.dark .share-trigger.is-success { background-color: var(--accent-soft); color: var(--accent-strong); }
 
 /* --- Header logo (#27) ---------------------------------------------------------
  * The artwork is docs/k2.png, shipped as a 56px asset by layouts/partials/header.html. It is
