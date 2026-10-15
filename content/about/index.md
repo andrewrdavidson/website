@@ -2,10 +2,10 @@
 title = "About"
 layout = "about"
 type = "page"
-language = 'en'
+language = 'en-GB'
 +++
 
-# A bit about me
+## A bit about me
 
 Ey up*, I’m Andrew Davidson. I’m a 30+ year IT veteran who has rolled up his sleeves and had a proper go at pretty much every corner of the tech space. From building bare-metal server hardware and scripting automated deployments to consulting on Microsoft tech like SharePoint and Azure Stack, I’ve been around the block more than a few times.
 
@@ -14,7 +14,7 @@ Tech is my second passion in life**. I genuinely love making things work, whethe
 <sub>\* To non-native Yorkshire speakers, Hi</sub><br>
 <sub>\** My wife is my first passion, and yes, she absolutely made me put that in. I know which side my bread is buttered! 😉</sub>
 
-# What do I actually do?
+## What do I actually do?
 
 Currently, I’m working as a Senior Support Engineer for a small consultancy company based right here in West Yorkshire.
 
