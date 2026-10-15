@@ -1,4 +1,4 @@
-import { devices, expect, test } from '@playwright/test';
+import { devices, expect, test, type Page } from '@playwright/test';
 
 /**
  * The behaviour that lives in markup and CSS rather than in a build: disclosures, the theme
@@ -135,7 +135,7 @@ test('a post card looks the same on every list surface, in both colour modes', a
 
   const readCard = () =>
     page
-      .locator('.group > div')
+      .locator('.post-card > div')
       .first()
       .evaluate((el) => {
         const style = getComputedStyle(el);
@@ -174,6 +174,60 @@ test('a post card looks the same on every list surface, in both colour modes', a
   expect(darkReference.background, 'the card surface should use a dark-mode token').not.toBe(reference.background);
 });
 
+test('the card date sits at the top right of the card, above the READ POST button', async ({ page }) => {
+  /* Asked for on 2026-10-15: the date had been floated left under the title since #14, which read
+     as the first line of the description once the cards grew to 1.5x — a stray line of text on the
+     left of a wide card. It is the card's top-right cell now, so this pins the three things that
+     make it that: on the right, its right edge on the card's padding edge, and above the READ POST
+     button. Checked on every surface that renders a card, because all three share the partial and
+     that is exactly why a position can drift on one of them without anyone noticing — and at both
+     project widths, since a narrow card is where "top right" is most likely to fall apart. */
+  for (const surface of ['/', '/posts/', '/categories/articles/']) {
+    await page.goto(surface);
+
+    const geometry = await page.locator('.post-card').first().evaluate((card) => {
+      const body = card.querySelector(':scope > div')!;
+      const rect = (el: Element) => el.getBoundingClientRect();
+      const bodyRect = rect(body);
+      const date = card.querySelector('.card-date');
+      const button = card.querySelector('.btn-read-more');
+      const summary = card.querySelector('p');
+      const style = getComputedStyle(body);
+      return {
+        // The card's content edge: its border box less the 1px hairline and the p-6 padding. The
+        // date's right edge is asserted against this rather than against the padding alone, which
+        // is 1px short of it and made this read as a 1px misalignment when it was right.
+        contentRight: bodyRect.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight),
+        body: { left: bodyRect.left, right: bodyRect.right, width: bodyRect.width },
+        date: date && { right: rect(date).right, bottom: rect(date).bottom },
+        button: button && { top: rect(button).top },
+        summary: summary && { top: rect(summary).top },
+        label: date?.textContent?.trim().replace(/\s+/g, ' ')
+      };
+    });
+
+    expect(geometry.date, `${surface}: the card has a date`).toBeTruthy();
+    expect(geometry.button, `${surface}: the card has a READ POST button`).toBeTruthy();
+    expect(geometry.summary, `${surface}: the card has a description`).toBeTruthy();
+    // The cell also holds the "New" badge (#28), which is in the DOM whether or not it is shown.
+    expect(geometry.label, `${surface}: the date is the post's date`).toMatch(/^\w{3} \d{2} \d{4}( New)?$/);
+
+    const date = geometry.date!;
+    expect(
+      date.bottom,
+      `${surface}: the date should be in the card's top block, above the description`
+    ).toBeLessThanOrEqual(geometry.summary!.top + 1);
+    expect(
+      Math.abs(date.right - geometry.contentRight),
+      `${surface}: the date should sit on the card's right content edge`
+    ).toBeLessThanOrEqual(1);
+    expect(
+      date.bottom,
+      `${surface}: the date should be above the READ POST button`
+    ).toBeLessThanOrEqual(geometry.button!.top + 1);
+  }
+});
+
 test('a post card links to the post and lifts its border on hover', async ({ page }) => {
   await page.goto('/posts/');
 
@@ -201,6 +255,82 @@ test('a tag chip navigates to the tag, not to the post behind it', async ({ page
   // this could land on the post instead.
   await expect(page).toHaveURL(new RegExp(`${href}/?$`));
   await expect(page.locator('h1')).toHaveCount(1);
+});
+
+test.describe('the share button’s copied flash', () => {
+  /* Asked for on 2026-10-15. The article header's share button copies the link and flashes a
+     "Copied!" pill for 1.6s; that pill was still the theme's mint/emerald pair — `#047857` on a
+     10% `#10b981` tint, `#86efac` on 16% `#16a34a` in dark — after the accent ramp went olive,
+     because the colour is a literal in the theme's own stylesheet (main.css
+     `.share-trigger.is-success`) rather than a token the ramp moves. The green sweep of #9/#10
+     recorded it as a known leftover and left it; this is it being closed.
+
+     The assertion compares the flash against a probe element painted from `--accent-strong` and
+     `--accent-soft` rather than against two hard-coded rgb triples, so it keeps passing when the
+     ramp is re-tuned and fails only if the flash stops using the tokens. Both modes are checked:
+     the theme's dark rule is `.dark .share-trigger.is-success` (0,3,0), one specificity step above
+     the light one, which is exactly the kind of override that silently keeps the old colour in one
+     mode — the fault `#9/#10` hit twice. */
+  test.use({ permissions: ['clipboard-write'] });
+
+  const POST = '/posts/using-winget/';
+
+  const flash = (page: Page) => {
+    const button = page.locator('.share-trigger');
+    return button.evaluate(async (el) => {
+      (el as HTMLElement).click();
+      // Wait out the button's 150ms `transition-colors` — read mid-transition, the colour is an
+      // interpolated one and a computed value can land a unit away from the token.
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      const style = getComputedStyle(el);
+
+      // A probe painted from the ramp's own tokens, inside the same `.dark` scope as the button.
+      const probe = document.createElement('span');
+      probe.style.color = 'var(--accent-strong)';
+      probe.style.backgroundColor = 'var(--accent-soft)';
+      (el.parentElement as HTMLElement).appendChild(probe);
+      const probeStyle = getComputedStyle(probe);
+
+      const read = {
+        success: el.classList.contains('is-success'),
+        error: el.classList.contains('is-error'),
+        label: (el.textContent || '').replace(/\s+/g, ' ').trim(),
+        color: style.color,
+        background: style.backgroundColor,
+        tokenColor: probeStyle.color,
+        tokenBackground: probeStyle.backgroundColor
+      };
+      probe.remove();
+      return read;
+    });
+  };
+
+  test('paints the accent pill, not the theme’s mint, in both colour modes', async ({ page }) => {
+    const modes: Record<string, Awaited<ReturnType<typeof flash>>> = {};
+
+    await page.goto(POST);
+    modes.light = await flash(page);
+
+    await page.addInitScript(() => localStorage.setItem('theme', 'dark'));
+    await page.goto(POST);
+    modes.dark = await flash(page);
+
+    // The theme's mint/emerald literals this replaced: the light text and the dark text/fill.
+    const MINT = ['rgb(4, 120, 87)', 'rgb(134, 239, 172)', 'rgba(22, 163, 74, 0.16)'];
+
+    for (const [mode, state] of Object.entries(modes)) {
+      expect(state.error, `${mode}: the copy should have succeeded`).toBe(false);
+      expect(state.success, `${mode}: the flash should be the success state`).toBe(true);
+      expect(state.label, `${mode}: the flash should say it copied`).toMatch(/copied/i);
+      expect(state.color, `${mode}: the flash text should be the accent text token`).toBe(state.tokenColor);
+      expect(state.background, `${mode}: the flash fill should be the accent fill token`).toBe(state.tokenBackground);
+      expect(MINT, `${mode}: the flash should carry none of the theme's mint`).not.toContain(state.color);
+      expect(MINT, `${mode}: the flash fill should carry none of the theme's mint`).not.toContain(state.background);
+    }
+
+    // And the two modes really are different, or checking both proves nothing.
+    expect(modes.dark.color, 'the dark flash should use the dark token').not.toBe(modes.light.color);
+  });
 });
 
 test('search returns results from the built index', async ({ page }) => {
