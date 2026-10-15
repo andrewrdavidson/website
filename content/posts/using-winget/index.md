@@ -13,7 +13,7 @@ Windows Package Manager, also known as `winget`, is the built-in command-line to
 
 This quick reference covers the most common commands for finding, installing, updating, and managing packages.
 
-# Using winget
+## Using winget
 
 ## Install an app
 

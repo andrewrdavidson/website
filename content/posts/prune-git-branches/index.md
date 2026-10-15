@@ -11,7 +11,7 @@ summary = 'Remove local Git branches that have already been deleted on the remot
 
 When a branch has been merged or deleted upstream, it can keep hanging around in your local repository as a stale reference. Over time that creates clutter and makes it harder to see what is still active. The quickest fix is to prune the remote-tracking refs and then delete the local branches that Git reports as already gone.
 
-# Remove all local Git branches that no longer exist on remote
+## Remove all local Git branches that no longer exist on remote
 
 The first command updates your remote refs and removes any stale remote-tracking branches:
 

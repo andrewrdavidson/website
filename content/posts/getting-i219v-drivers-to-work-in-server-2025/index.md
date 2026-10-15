@@ -9,7 +9,7 @@ author = 'Andrew Davidson'
 summary = 'How I got the Intel I219-V network drivers working on Windows Server 2022/2025, including driver pack download, .inf file editing, and SecureBoot/UEFI considerations.'
 +++
 
-# Introduction
+## Introduction
 
 I have an old Intel NUC that I wanted to re-use, so I got out my trusty Rufus tools and created myself a Windows Server 2025 USB stick. After I'd install Windows, and logged in, I was met with no network interface 😞
 
@@ -103,7 +103,7 @@ bcdedit /set nointegritychecks OFF
 
 reboot
 
-# First try
+## First try
 
 Build OS
 Login
