@@ -55,4 +55,9 @@
   {{ if hugo.IsProduction }}{{ $js = $js | minify | fingerprint }}{{ end }}
 <script defer src="{{ $js.RelPermalink }}"{{ if hugo.IsProduction }} integrity="{{ $js.Data.Integrity }}" crossorigin="anonymous"{{ end }}></script>
 {{ end }}
-<link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+{{/* Boxicons used to be loaded a second time here, from unpkg 2.1.4. The three
+     cdn.boxicons.com stylesheets in layouts/partials/head/css.html already define every icon
+     class this site uses (all eight in shortcodes/callout.html) — the unpkg 2.1.4 sheet
+     defined only two of them — so it fetched a whole second icon font on every page and gave
+     Edge's tracking prevention a third-party origin to complain about (#31). Do not re-add a
+     copy from a second CDN. */}}

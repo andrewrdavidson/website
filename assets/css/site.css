@@ -319,3 +319,27 @@
   border: 1px solid var(--accent-line);
   color: var(--accent-strong);
 }
+
+/* --- Wide screens: keep the article's widening to itself (#30) ------------------
+ * themes/void/assets/css/main.css widens `main` to 92rem at >=92rem so a single post can
+ * carry a sticky TOC sidebar in the right-hand gutter. Its own comment states the intent —
+ * "the article column stays exactly where it is on every other page (56rem, centered,
+ * aligned with the header)" — but the rule targets `.site-main`, not the article layout, so
+ * it reaches every page. The pages that survive it are the ones whose content is wrapped in
+ * its own max-w-4xl container; the homepage's "My Recent Posts" and "My Series" sections are
+ * not, so on a wide screen their cards stretched to 92rem while the header and the hero
+ * stayed at 56rem (measured at 1920: main 1472px vs header/hero 896px).
+ *
+ * Resetting the width here and handing it back only to an article that actually has a TOC
+ * gives every other page the 56rem column the theme intends. Equal specificity, loaded after
+ * the theme, so these win. The `:has()` half is load-bearing, not belt-and-braces: with the
+ * reset alone the TOC's grid column collapses to 0px and the sidebar disappears at exactly
+ * the width it exists for (measured: grid columns 248/896/248 became 0/816/0).
+ *
+ * Keep in step with the theme on upgrade: if 92rem, `.article-layout` or `.has-toc` is
+ * renamed upstream, this block goes stale (see the appendix of docs/BlogIssues-Fixes.md).
+ */
+@media (min-width: 92rem) {
+  .site-main { max-width: 56rem; }
+  .site-main:has(.article-layout.has-toc) { max-width: 92rem; }
+}

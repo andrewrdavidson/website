@@ -36,7 +36,9 @@
         {{ range .Pages.ByDate }}
         <li class="relative">
           <a href="{{ .RelPermalink }}" class="absolute inset-0 z-10" aria-label="{{ .Title }}"></a>
-          <div class="bg-surface rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 p-5 flex gap-4 group">
+          {{/* The token hairline and accent hover the other cards use (#29); this card's only edge
+               in dark mode used to be the invisible black `shadow-sm`. */}}
+          <div class="bg-surface border border-line hover:border-accent-line rounded-lg shadow-sm hover:shadow-md transition duration-300 p-5 flex gap-4 group">
             {{/* Colour comes from .series-index in assets/css/site.css: it was text-green-200
                  (mint, and only 1.4:1 on a white card) with a text-green-400 hover. */}}
             <div class="series-index w-8 shrink-0 text-2xl font-bold transition-colors">{{ index $numbers .RelPermalink }}</div>

@@ -26,7 +26,12 @@
           {{ range .Pages.ByDate.Reverse }}
           <div class="relative">
             <a href="{{ .RelPermalink }}" class="absolute inset-0 z-10" aria-label="{{ .Title }}"></a>
-            <div class="bg-surface rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden group">
+            {{/* The hairline (#29): `border-line` is the same token hairline every other card on the
+                 site carries (homepage, prev/next, related). Without it this card's only edge in dark
+                 mode was an invisible black `shadow-sm`, which read as a grey seam where the rest of
+                 the site shows a navy line. Hover then moves the border to the accent, because
+                 `hover:shadow-md` is a black shadow too and does not read on a dark canvas. */}}
+            <div class="bg-surface border border-line hover:border-accent-line rounded-lg shadow-sm hover:shadow-md transition duration-300 overflow-hidden group">
               <div class="p-5">
                 <div class="flex flex-col sm:flex-row sm:items-baseline justify-between mb-3">
                   <h3 class="text-xl font-medium text-fg group-hover:text-accent transition-colors">
