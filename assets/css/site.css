@@ -67,6 +67,17 @@ contents sidebar. */
 
 .article-inner { max-width: 69rem; }
 
+/* The about page is the one long-form body with no measure of its own: the theme's
+   page/about.html wraps its prose straight in the card (`.about-card .prose`), where a post wraps
+   it in `.article-inner`. At the old 56rem column that did not matter; at 84rem it would run the
+   full column — around 130 characters a line — beside articles sitting at 69rem. Same measure,
+   centred in the card, so the two read alike. */
+.about-card .prose {
+  max-width: 69rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* --- Code blocks: the three colours the theme's syntax palettes get wrong --- */
 
 /* Found by the axe pass (tests/e2e/accessibility.spec.ts) on its first run, on the one page with
