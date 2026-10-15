@@ -42,19 +42,13 @@ whole scale moves together so no surface is 1.5x while the one beside it is not:
     post lists, the taxonomy and term pages, the homepage hero and the article card
   - `--container-3xl` 48rem -> 72rem  the /search/ page
   - `--container-2xl` 42rem -> 63rem  the 404's centred notice and the footer disclaimer
-  - `.article-inner`  46rem -> 69rem  the prose itself, and with it the series nav, the inline
-    table of contents and the comment thread, which are the same wrapper
+  - `.article-inner`  46rem -> none   the article's own column, see below
 
 Overriding the Tailwind container tokens rather than the classes is deliberate: the templates keep
 the class names the theme uses, so an upstream change to a container class still lands, and every
 width in the site is in this one block. Tailwind emits those tokens inside `@layer theme` and this
 file is plain, unlayered CSS loaded after it, so these win without !important — the same mechanism
 that makes the `--font-bilingual` override above work.
-
-Line length is the cost of the wider measure: 69rem at the prose size is close to 100 characters,
-past the 45-90 the theme's 46rem was chosen for. That is the requested trade — if it reads long,
-cap the measure on its own (a `max-width` on `.prose`) rather than shrinking the column, which
-would undo the width everywhere else too.
 
 Keep in step with the wide-screen block below: it hands the same 84rem to `main` and needs the
 arithmetic 84rem + 2 x (14rem sidebar + 1.5rem gap) + 2 x 2.5rem padding = 120rem for the table of
@@ -65,18 +59,29 @@ contents sidebar. */
   --container-4xl: 84rem;
 }
 
-.article-inner { max-width: 69rem; }
+/* --- The article's inner column: fill the card, do not centre a narrower measure --------
 
-/* The about page is the one long-form body with no measure of its own: the theme's
-   page/about.html wraps its prose straight in the card (`.about-card .prose`), where a post wraps
-   it in `.article-inner`. At the old 56rem column that did not matter; at 84rem it would run the
-   full column — around 130 characters a line — beside articles sitting at 69rem. Same measure,
-   centred in the card, so the two read alike. */
-.about-card .prose {
-  max-width: 69rem;
-  margin-left: auto;
-  margin-right: auto;
-}
+The theme caps `.article-inner` — the wrapper the article's header, prose, inline table of
+contents, series nav and comment thread all share — at 46rem and centres it, so that inside a
+56rem card every one of them sat 5rem in from the card's edge. At the old width that read as
+padding; inside an 84rem card it is 112px of empty card on each side (80px of unused width plus
+the wrapper's own 2rem padding) against the 25px the card gives the title above it, and a post's
+text — the thing the reader came for — was the narrowest content on a page whose cards run the
+full column. Asked for on 2026-10-15 as "reduce to match the top padding [...] or make the post
+content fill the parent container".
+
+`max-width: none` leaves the wrapper's own padding (1.25rem, 2rem from 640px up) as the only
+inset, so the text's left and right inset is 32px against the title's 25px above it, and the
+article's text column is the card minus its padding — the same shape the homepage's cards have,
+which is the surface the complaint was measured against. Nothing else moves: the wrapper is still
+centred (`margin: auto` on a max-width of none is a no-op), and the series nav, the inline TOC and
+Giscus inherit the same width, which is what kept them aligned with the prose in the first place.
+
+The cost is line length again — the article's text now runs the card's width, around 155
+characters a line at 1920px, where the theme's 46rem gave 96. That is the requested trade, taken
+deliberately: if it reads long later, cap this at a comfortable measure (`max-width: 65rem`) rather
+than shrinking the page column, which would narrow every card on the site with it. */
+.article-inner { max-width: none; }
 
 /* --- Code blocks: the three colours the theme's syntax palettes get wrong --- */
 
