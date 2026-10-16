@@ -1,0 +1,4 @@
+allowBuilds:
+  '@parcel/watcher': set this to true or false
+minimumReleaseAgeExclude:
+  - '@axe-core/playwright@4.14.0'

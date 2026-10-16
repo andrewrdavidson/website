@@ -5,6 +5,10 @@
  *
  *     npm run build:drafts && npm run check:html      # or npm run check:html -- <dir>
  *
+ * The tree has to be an *indexed* build: `/search/` links Pagefind's stylesheet and script, which
+ * `npm run search` writes after Hugo has rendered, so a `hugo`-only tree fails those two links. That
+ * is correct — its search box does not work either — which is why both build scripts run the index.
+ *
  * It exists because every one of these has already been got wrong at least once on this site,
  * and each was found by hand rather than by anything that runs on a push:
  *
@@ -27,6 +31,14 @@
  *   - robots.txt declares the sitemap        it used to be Hugo's one line with no Sitemap
  *                                            reference at all, and the sitemap's own URLs were
  *                                            checked by nothing (2026-10-15)
+ *   - one date format, from one of two partials  the homepage's series parts printed the old i18n
+ *                                            string ("Sep 03 2026"), and the series page printed
+ *                                            that and the shared partial, so its span of dates
+ *                                            appeared twice in two styles (2026-10-16)
+ *   - a served tree is named, not mistaken  `hugo server` renders to disk by default and prunes
+ *     for an artifact                        nothing, so checking one used to report the theme's
+ *                                            static files as six regressions; the tree is named
+ *                                            instead and the artifact checks are skipped
  *
  * Pages that are redirect stubs (Hugo's pagination aliases) are skipped: they are a meta refresh
  * and a canonical link, with no content to check.
@@ -73,6 +85,27 @@ const isFile = async (path) => {
   }
 };
 
+/* A URL reaches this file as *text*: an attribute value out of the HTML, or a `<loc>` out of the
+   XML. Neither is a parsed URL, and Go's html/template escapes a literal `+` in a URL as `&#43;`
+   (and `&` as `&amp;`), which is what a browser and a crawler decode again before they fetch
+   anything. Reading the text raw made the `Visual C++` tag unresolvable (2026-10-16): `/tags/visual-c&#43;&#43;/`
+   split at the `#` inside the entity, and the checker asked for a page literally called
+   `tags/visual-c&`. One pass, the same one a parser makes, so `&amp;#43;` decodes to `&#43;` and no
+   further — which is what the browser does with it too. */
+const NAMED_ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
+
+function decodeEntities(text) {
+  return text.replace(
+    /&(?:#(\d+)|#[xX]([0-9a-fA-F]+)|(amp|lt|gt|quot|apos));/g,
+    (match, decimal, hexadecimal, named) =>
+      decimal
+        ? String.fromCodePoint(Number(decimal))
+        : hexadecimal
+          ? String.fromCodePoint(parseInt(hexadecimal, 16))
+          : NAMED_ENTITIES[named]
+  );
+}
+
 /** Resolves one on-page URL to a file in the build, or null when there is nothing to resolve. */
 async function resolveInternal(url, fromFile) {
   if (!url || /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(url)) return null; // mailto:, https:, //cdn…
@@ -112,6 +145,57 @@ const EVENT_HANDLER_ATTRS = new Set([
   'onwheel'
 ]);
 
+/* Dates, in the two formats this site renders them in — each produced by a partial of its own,
+   partials/format-date.html ("7th October 2026") and partials/format-date-and-time.html
+   ("7th October 2026 at 7:39pm"). Every date-shaped expression in a page's text must be one of them.
+
+   Read from a page's rendered text rather than from the templates, because that is what a reader
+   gets: a grep over layouts/ would see the commented-out block in _default/single.html (a raw
+   `2006-01-02` that renders nowhere) and would miss a date a locale or a config produced. Only text
+   is read, never an attribute — the ISO `datetime` written beside every rendered date is the
+   machine format and is supposed to be ISO — and <pre>/<code> are skipped, where a date is the
+   subject rather than a date the site is printing.
+
+   The two faults this was written for (2026-10-16): the homepage's series parts printed the old i18n
+   `date_month_day_format` ("Sep 03 2026"), and the series page printed both it and the shared
+   partial. */
+const MONTH_NAMES = 'January|February|March|April|May|June|July|August|September|October|November|December';
+const MONTH_ABBREVIATIONS = 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec';
+const DATE_EXPRESSION = new RegExp(
+  [
+    // 8th October 2026, 8 October 2026 — and a clock time on the same line, which is the second
+    // format, so a hand-rolled one ("… 8:12 PM") is caught by the same expression as its date.
+    `\\b\\d{1,2}(?:st|nd|rd|th)? (?:${MONTH_NAMES}) \\d{4}(?:\\s+(?:at\\s+)?\\d{1,2}:\\d{2}\\s*(?:am|pm|AM|PM))?`,
+    // October 8th, 2026 / October 8, 2026 / Oct 07 2026 — the shape the old i18n string has
+    `\\b(?:${MONTH_NAMES}|${MONTH_ABBREVIATIONS})\\.? \\d{1,2}(?:st|nd|rd|th)?,? \\d{4}`,
+    /* 2026-10-16: Go's own default layouts are of this shape, so a template that formats a date
+       without a partial usually lands here. Deliberately *no* numeric `d/m/y` shape: a Windows
+       version list in a callout ("OS Version (10/11/2019/2022/2025 and 21H2/23H2/24H2 etc)") is
+       not a date, and reading it as one fails a build over prose. */
+    '\\b\\d{4}-\\d{2}-\\d{2}\\b'
+  ].join('|'),
+  'g'
+);
+
+const DATE_FORMATS = [
+  new RegExp(`^\\d{1,2}(?:st|nd|rd|th) (?:${MONTH_NAMES}) \\d{4}$`),
+  new RegExp(`^\\d{1,2}(?:st|nd|rd|th) (?:${MONTH_NAMES}) \\d{4} at \\d{1,2}:\\d{2}(?:am|pm)$`)
+];
+
+/** Everything a reader could read on a page, one string per text node: the scripts, stylesheets,
+    code samples and comments a date may legitimately appear in are dropped first. */
+function visibleText(html) {
+  return html
+    .replace(/<script\b[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style\b[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<pre\b[\s\S]*?<\/pre>/gi, ' ')
+    .replace(/<code\b[\s\S]*?<\/code>/gi, ' ')
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .split(/<[^>]*>/)
+    .map((piece) => decodeEntities(piece).replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+}
+
 async function walk(dir) {
   const files = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
@@ -133,6 +217,10 @@ function attributesOf(tag) {
 const problems = [];
 const record = (file, message, detail = '') => problems.push({ file, message, detail });
 
+/* Set by the first page carrying Hugo's livereload script: a served tree, whose artifact-level
+   checks cannot say anything (see checkArtifact at the foot of the file). */
+let devTree = false;
+
 const files = (await walk(root)).sort();
 let checked = 0;
 
@@ -143,6 +231,7 @@ for (const file of files) {
   // Pagination aliases and other redirect stubs have no content of their own.
   if (/http-equiv=["']?refresh/i.test(html)) continue;
   checked++;
+  if (/\/livereload\.js/.test(html)) devTree = true;
 
   /* Heading structure. A page has one <h1> — its title — and no level is skipped on the way down,
      because a screen reader's outline is the page for anyone who navigates by heading. */
@@ -194,10 +283,18 @@ for (const file of files) {
     record(name, 'twitter:card is not summary_large_image');
   }
 
+  /* Dates: one house style, from one of two partials — see DATE_EXPRESSION above. */
+  for (const text of visibleText(html)) {
+    for (const match of text.matchAll(DATE_EXPRESSION)) {
+      if (DATE_FORMATS.some((format) => format.test(match[0]))) continue;
+      record(name, 'a date is not in one of the two shared formats', `“${match[0]}” in “${text.slice(0, 90)}”`);
+    }
+  }
+
   /* Every internal link and asset, resolved against the build. Anchors are checked too, because
      the heading anchors are generated and a renamed heading leaves a dead one behind. */
   for (const match of html.matchAll(/<(?<tag>a|link|img|script)\b[^>]*?\s(?:href|src)=["']?([^"'>\s]+)/gi)) {
-    const url = match[2];
+    const url = decodeEntities(match[2]);
     const resolved = await resolveInternal(url, file);
     if (!resolved) continue;
     if (resolved.outside) {
@@ -220,71 +317,91 @@ for (const file of files) {
 
 /* The artifact itself: the pruned paths must be gone, and no page may ask for the removed CJK
    sheet. Both are the other half of the 2026-10-15 font work — the templates stopped linking the
-   face, and `npm run prune` takes the files out of the build. */
-for (const path of PRUNED_PATHS) {
-  if (await exists(join(root, path))) record(path, 'pruned file is present in the build again');
-}
+   face, and `npm run prune` takes the files out of the build.
 
-/* The two crawler files, checked together because they are only worth anything as a pair.
-
-   `layouts/robots.txt` exists for exactly one reason — to declare the sitemap, which Hugo's
-   built-in one-line robots.txt does not — and the sitemap itself is generated by Hugo with no
-   template of its own, so nothing else in this repo would notice if it stopped listing pages, or
-   started listing them at an origin the robots file does not name. The origin is the build's own
-   (https://kelrys.com in a deploy build, http://localhost:8081 for the build the suite runs on),
-   never assumed here: the Sitemap line and every `<loc>` have to agree with each other. */
-const robotsPath = join(root, 'robots.txt');
-const sitemapPath = join(root, 'sitemap.xml');
-let sitemapOrigin = '';
-
-if (!(await exists(robotsPath))) {
-  record('robots.txt', 'missing from the build');
-} else {
-  const robots = await readFile(robotsPath, 'utf8');
-  const declared = [...robots.matchAll(/^\s*Sitemap:\s*(\S+)\s*$/gim)].map((match) => match[1]);
-  if (declared.length === 0) {
-    record('robots.txt', 'no Sitemap line, so a crawler has to guess where the sitemap is');
-  } else if (declared.length > 1) {
-    record('robots.txt', `${declared.length} Sitemap lines`, declared.join(' '));
+   All of it is one function because a served tree has to be able to skip all of it. `hugo server`
+   copies the theme's static directory wholesale and prunes nothing, so the CJK slices and the four
+   icons are *expected* in a dev tree, and its sitemap is written at the dev origin — reporting
+   that as six regressions, on a tree nobody is going to deploy, is how a real one gets ignored.
+   The tell is the livereload script Hugo injects into every page it serves, which is also why
+   resolveInternal ignores livereload *links*. A dev tree's pages are still checked — headings,
+   links, policy — and the run still exits non-zero: it is named rather than passed. */
+async function checkArtifact() {
+  for (const path of PRUNED_PATHS) {
+    if (await exists(join(root, path))) record(path, 'pruned file is present in the build again');
   }
-  for (const url of declared) {
-    if (!/^https?:\/\//i.test(url)) record('robots.txt', `Sitemap line is not absolute: ${url}`);
-    else sitemapOrigin = new URL(url).origin;
-  }
-}
 
-if (!(await exists(sitemapPath))) {
-  record('sitemap.xml', 'missing from the build');
-} else {
-  const xml = await readFile(sitemapPath, 'utf8');
-  const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
-  if (locs.length === 0) record('sitemap.xml', 'lists no URLs');
-  if (xml.includes('</urlset>') === false) record('sitemap.xml', 'has no closing </urlset>');
+  /* The two crawler files, checked together because they are only worth anything as a pair.
 
-  const origins = new Set();
-  const seen = new Set();
-  for (const loc of locs) {
-    if (!/^https?:\/\//i.test(loc)) {
-      record('sitemap.xml', `entry is not absolute: ${loc}`);
-      continue;
+     `layouts/robots.txt` exists for exactly one reason — to declare the sitemap, which Hugo's
+     built-in one-line robots.txt does not — and the sitemap itself is generated by Hugo with no
+     template of its own, so nothing else in this repo would notice if it stopped listing pages, or
+     started listing them at an origin the robots file does not name. The origin is the build's own
+     (https://kelrys.com in a deploy build, http://localhost:8081 for the build the suite runs on),
+     never assumed here: the Sitemap line and every `<loc>` have to agree with each other. */
+  const robotsPath = join(root, 'robots.txt');
+  const sitemapPath = join(root, 'sitemap.xml');
+  let sitemapOrigin = '';
+
+  if (!(await exists(robotsPath))) {
+    record('robots.txt', 'missing from the build');
+  } else {
+    const robots = await readFile(robotsPath, 'utf8');
+    const declared = [...robots.matchAll(/^\s*Sitemap:\s*(\S+)\s*$/gim)].map((match) => decodeEntities(match[1]));
+    if (declared.length === 0) {
+      record('robots.txt', 'no Sitemap line, so a crawler has to guess where the sitemap is');
+    } else if (declared.length > 1) {
+      record('robots.txt', `${declared.length} Sitemap lines`, declared.join(' '));
     }
-    origins.add(new URL(loc).origin);
-    if (seen.has(loc)) record('sitemap.xml', `entry appears twice: ${loc}`);
-    seen.add(loc);
-
-    // Every advertised URL has to be a page that is really in this build: a stale entry is a 404
-    // a crawler finds on its own, and no on-page link check would ever see it.
-    const resolved = await resolveInternal(new URL(loc).pathname, sitemapPath);
-    if (resolved?.missing) record('sitemap.xml', `entry does not resolve in this build: ${loc}`);
-    if (resolved?.outside) record('sitemap.xml', `entry escapes the build directory: ${loc}`);
+    for (const url of declared) {
+      if (!/^https?:\/\//i.test(url)) record('robots.txt', `Sitemap line is not absolute: ${url}`);
+      else sitemapOrigin = new URL(url).origin;
+    }
   }
 
-  if (origins.size > 1) {
-    record('sitemap.xml', `entries span ${origins.size} origins`, [...origins].join(' '));
+  if (!(await exists(sitemapPath))) {
+    record('sitemap.xml', 'missing from the build');
+  } else {
+    const xml = await readFile(sitemapPath, 'utf8');
+    const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => decodeEntities(match[1]));
+    if (locs.length === 0) record('sitemap.xml', 'lists no URLs');
+    if (xml.includes('</urlset>') === false) record('sitemap.xml', 'has no closing </urlset>');
+
+    const origins = new Set();
+    const seen = new Set();
+    for (const loc of locs) {
+      if (!/^https?:\/\//i.test(loc)) {
+        record('sitemap.xml', `entry is not absolute: ${loc}`);
+        continue;
+      }
+      origins.add(new URL(loc).origin);
+      if (seen.has(loc)) record('sitemap.xml', `entry appears twice: ${loc}`);
+      seen.add(loc);
+
+      // Every advertised URL has to be a page that is really in this build: a stale entry is a 404
+      // a crawler finds on its own, and no on-page link check would ever see it.
+      const resolved = await resolveInternal(new URL(loc).pathname, sitemapPath);
+      if (resolved?.missing) record('sitemap.xml', `entry does not resolve in this build: ${loc}`);
+      if (resolved?.outside) record('sitemap.xml', `entry escapes the build directory: ${loc}`);
+    }
+
+    if (origins.size > 1) {
+      record('sitemap.xml', `entries span ${origins.size} origins`, [...origins].join(' '));
+    }
+    if (sitemapOrigin && origins.size === 1 && !origins.has(sitemapOrigin)) {
+      record('sitemap.xml', `entries are on ${[...origins][0]} but robots.txt declares ${sitemapOrigin}`);
+    }
   }
-  if (sitemapOrigin && origins.size === 1 && !origins.has(sitemapOrigin)) {
-    record('sitemap.xml', `entries are on ${[...origins][0]} but robots.txt declares ${sitemapOrigin}`);
-  }
+}
+
+if (devTree) {
+  record(
+    root,
+    'this is a `hugo server` tree, not a build artifact',
+    'its artifact checks — the pruned paths, robots.txt and the sitemap — were skipped: `npm run test:prepare` builds the tree they apply to'
+  );
+} else {
+  await checkArtifact();
 }
 
 /* One line per distinct problem, with counts and a sample, rather than one line per occurrence:

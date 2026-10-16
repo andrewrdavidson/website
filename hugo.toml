@@ -27,6 +27,15 @@ theme = "void"
 # the site title, because a description that just repeats the title is worse than none.
 description = 'Notes on DevOps, Windows, PowerShell and Proxmox: working series, handy tips, and the occasional driver that turned out to be a rabbit hole.'
 
+# Post history: the versions/dates/authors table at the foot of a post, built from each page's
+# `history` front matter (npm run history:write). Left unset — no line for it here — it follows the
+# build: `hugo server` and the drafts build `npm run test:prepare` makes show it, and a deploy build
+# (`npm run build`, and the same job in CI) does not, a change log being about the author's edits
+# rather than the reader's visit. Set it to decide outright, either way:
+# `showPostHistory = true` publishes the tables too, `= false` never renders one. The front matter
+# itself is untouched whatever this says, so `npm run history:write`/`:check` are unaffected.
+showPostHistory = false
+
 [languages]
   [languages.en]
     # UK English throughout: <html lang>, hreflang, the RSS channel language and the Pagefind

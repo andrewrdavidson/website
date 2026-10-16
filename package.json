@@ -8,9 +8,11 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "hugo server --buildDrafts --buildFuture --disableFastRender --renderToMemory --port 1313",
-    "build": "hugo --gc --minify --cleanDestinationDir && npm run prune",
-    "build:drafts": "hugo --gc --minify --buildDrafts --buildFuture --cleanDestinationDir && npm run prune",
+    "dev": "npm run tailwind:shim && hugo server --buildDrafts --buildFuture --disableFastRender --renderToMemory --port 1313",
+    "build": "npm run clean:artifact && npm run tailwind:shim && hugo --gc --minify && npm run search && npm run prune",
+    "build:drafts": "npm run clean:artifact && npm run tailwind:shim && hugo --gc --minify --buildDrafts --buildFuture && npm run search && npm run prune",
+    "tailwind:shim": "node tools/tailwind-shim.mjs",
+    "clean:artifact": "node tools/clean-artifact.mjs",
     "prune": "node tools/prune-artifact.mjs",
     "search": "pagefind --site public --output-subdir pagefind --force-language en-GB",
     "og:image": "node tools/make-og-image.mjs",
@@ -19,13 +21,13 @@
     "history:check": "node tools/post-history.mjs --check",
     "preview": "node tests/static-server.mjs public 8081",
     "check:html": "node tests/check-html.mjs public",
-    "test:prepare": "hugo --gc --minify --cleanDestinationDir --buildDrafts --buildFuture --baseURL http://localhost:8081/ && npm run search && npm run prune",
+    "test:prepare": "npm run clean:artifact && npm run tailwind:shim && hugo --gc --minify --buildDrafts --buildFuture --baseURL http://localhost:8081/ && npm run search && npm run prune",
     "test": "playwright test",
     "test:tools": "node --test tests/tools/",
     "test:install": "playwright install chromium",
     "test:install:ci": "playwright install --with-deps chromium",
     "test:report": "playwright show-report",
-    "clean": "rm -rf public resources/_gen hugo_stats.json"
+    "clean": "node tools/clean-artifact.mjs public resources/_gen hugo_stats.json"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

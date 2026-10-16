@@ -34,27 +34,87 @@ test.describe('disclosures, with JavaScript disabled', () => {
 
     await summary.click();
     await expect(disclosure).toHaveAttribute('open', '');
+    // Opening the list is not a navigation: the summary outranks the card's own link.
+    await expect(page).toHaveURL(/\/$/);
 
     const opened = await chevron.evaluate((el) => getComputedStyle(el).transform);
     expect(opened, 'the chevron should turn when the list opens').not.toBe(closed);
 
-    // The parts are real links to real post URLs, not something a script has to build.
-    const firstPart = disclosure.locator('.series-parts a').first();
+    // The parts are real links to real post URLs, not something a script has to build. The list is
+    // the disclosure's *sibling* rather than its content — layouts/index.html says why (the count
+    // has to be a cell of the title row, and a <details> is one box around both) — so it is looked
+    // up on the card, not on the disclosure.
+    const firstPart = page.locator('.series-card .series-parts a').first();
     await expect(firstPart).toBeVisible();
     await expect(firstPart).toHaveAttribute('href', /\/series\/.+\/part\d+\/$/);
 
-    // The series name is still a link to its series page, and — this is the point — it is NOT
-    // inside the summary, so opening the list cannot navigate away from the homepage. The first
-    // card is whatever series has the newest post, so the href is matched by shape, not by slug;
-    // the series page itself is covered in content.spec.ts.
-    const title = page.locator('h3 a[href*="/series/"]').first();
-    await expect(title).toHaveAttribute('href', /\/series\/[a-z0-9-]+\/$/);
+    /* Where the count sits (2026-10-16: "each series listed shows a 'Contains X posts', that is
+       now rendering underneath the title, not to the right of the card as it used to be"). It is
+       the title row's right-hand cell again: hard against the card's right padding, and at most
+       the row's own wrap gap below the title — which is what it is on a card too narrow for both,
+       as the post cards' date is at 390px. The placement it replaced left it under the title with
+       the disclosure's own `mt-3` in between, so this measures the gap rather than the markup it
+       happens to arrive in. */
+    const card = page.locator('.series-card').first();
+    const row = await card.evaluate((el) => {
+      const body = el.querySelector(':scope > div') as HTMLElement;
+      const style = getComputedStyle(body);
+      const bodyBox = body.getBoundingClientRect();
+      const heading = el.querySelector('h3')!.getBoundingClientRect();
+      const summary = el.querySelector('summary')!.getBoundingClientRect();
+      return {
+        // The card's content edge, read exactly as the post-card date test reads it: the border box
+        // less the 1px hairline and the p-6 padding.
+        contentRight: bodyBox.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight),
+        headingBottom: heading.bottom,
+        summary: { top: summary.top, right: summary.right }
+      };
+    });
+
+    expect(
+      Math.abs(row.summary.right - row.contentRight),
+      `the count should sit on the card's right content edge (${row.summary.right} against ${row.contentRight})`
+    ).toBeLessThanOrEqual(1);
+    expect(
+      row.summary.top - row.headingBottom,
+      'the count belongs on the title’s line, or on the line directly below it on a card too narrow for both'
+    ).toBeLessThanOrEqual(9);
+
+    /* The whole card goes to its series page now, asked for the same day: "make each series card
+       clickable to go to that series content, not just clicking on the title". It is the full-cover
+       anchor the post cards use, so what makes it one is checked: the link names a series, and it
+       covers the card's own box. The heading is still NOT inside the summary — with it there, the
+       top row would toggle the list instead of leaving the page. The first card is whatever series
+       has the newest post, so the href is matched by shape; the series page itself is covered in
+       content.spec.ts. */
+    const cover = card.locator(':scope > a[aria-label]');
+    await expect(cover).toHaveAttribute('href', /\/series\/[a-z0-9-]+\/$/);
+    const href = (await cover.getAttribute('href'))!;
+    expect(
+      await card.evaluate((el) => {
+        const box = el.getBoundingClientRect();
+        const anchor = (el.querySelector(':scope > a') as HTMLElement).getBoundingClientRect();
+        return Math.round(box.width - anchor.width) + Math.round(box.height - anchor.height);
+      }),
+      'the link should cover the whole card'
+    ).toBe(0);
     expect(await page.locator('summary h3').count(), 'a heading inside the summary would make the title part of the toggle').toBe(0);
     await expect(page.locator('h1')).toHaveCount(1);
 
-    // And the card for the series the suite knows about is on the page, with a link to its own
-    // page rather than to a post.
-    await expect(page.locator(`h3 a[href="${new URL(SERIES_PAGE, page.url()).href}"]`)).toHaveCount(1);
+    // And the card for the series the suite knows about is on the page, pointing at that series.
+    const known = new URL(SERIES_PAGE, page.url()).href;
+    await expect(page.locator(`a[aria-label][href="${known}"]`)).toHaveCount(1);
+
+    /* Clicking the card itself — its own padding, rather than the heading, the toggle or a part —
+       follows that link. A raw mouse click, because everything else in the card sits above the
+       anchor on purpose and a locator click on a covered element is refused as intercepted. */
+    await card.scrollIntoViewIfNeeded();
+    const spot = await card.evaluate((el) => {
+      const box = el.getBoundingClientRect();
+      return { x: box.left + 4, y: box.bottom - 4 };
+    });
+    await page.mouse.click(spot.x, spot.y);
+    await expect(page).toHaveURL(new RegExp(`${href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`));
   });
 
   test('the category index expands to its posts', async ({ page }) => {
@@ -209,8 +269,14 @@ test('the card date sits at the top right of the card, above the READ POST butto
     expect(geometry.date, `${surface}: the card has a date`).toBeTruthy();
     expect(geometry.button, `${surface}: the card has a READ POST button`).toBeTruthy();
     expect(geometry.summary, `${surface}: the card has a description`).toBeTruthy();
-    // The cell also holds the "New" badge (#28), which is in the DOM whether or not it is shown.
-    expect(geometry.label, `${surface}: the date is the post's date`).toMatch(/^\w{3} \d{2} \d{4}( New)?$/);
+    /* The date is one of the two formats the site renders dates in — partials/format-date.html and
+       format-date-and-time.html; check-html.mjs sweeps every page for both, and this is the same
+       rule where the card is actually measured. It used to expect `Oct 07 2026`, the old i18n
+       string the cards stopped using (#14), which is why this had been failing untouched. The cell
+       also holds the "New" badge (#28), in the DOM whether or not it is shown. */
+    expect(geometry.label, `${surface}: the date is the post's date`).toMatch(
+      /^\d{1,2}(?:st|nd|rd|th) [A-Z][a-z]+ \d{4}( New)?$/
+    );
 
     const date = geometry.date!;
     expect(
@@ -509,12 +575,18 @@ test.describe('the post header’s meta row', () => {
     await page.goto(POST);
     const groups = await measure(page);
 
-    expect(groups.map((group) => group.text), 'the four facts the row carries').toEqual([
-      '6th October 2026 at 7:39pm',
-      'Last updated on 15th October 2026 at 3:46pm',
-      'By Andrew Davidson',
-      '2 min read'
-    ]);
+    /* The two dates are asserted by format rather than by value: `format-date-and-time.html` is
+       what renders them, and a literal fails the moment a post is edited — both of these had gone
+       stale (the page now carries its own publish and last-updated times). check-html.mjs holds the
+       same two formats, page by page. */
+    const [published, updated, ...facts] = groups.map((group) => group.text);
+    expect(published, 'the publication date').toMatch(
+      /^\d{1,2}(?:st|nd|rd|th) [A-Z][a-z]+ \d{4} at \d{1,2}:\d{2}(?:am|pm)$/
+    );
+    expect(updated, 'the last-updated date').toMatch(
+      /^Last updated on \d{1,2}(?:st|nd|rd|th) [A-Z][a-z]+ \d{4} at \d{1,2}:\d{2}(?:am|pm)$/
+    );
+    expect(facts, 'the other two facts the row carries').toEqual(['By Andrew Davidson', '2 min read']);
 
     /* Every group is a whole number of line boxes tall, so none of them can be carrying padding
        that lifts its contents off the row's centre line. The line box itself is taken from the

@@ -6,6 +6,7 @@ exist under `hugo server`.
 
 ```bash
 npm run test:prepare     # build into public/ with drafts, at http://localhost:8081/, index, prune
+                         # (the two build scripts index and prune too — see check-html.mjs below)
 npm test                 # the Playwright suite (starts its own static server on 8081)
 npm run check:html       # the static checks over the same public/ directory
 npm run test:tools       # node --test over tools/ — no build, no browser, a second or so
@@ -31,13 +32,25 @@ find exhaustively, and a Hugo build cannot see at all:
 | a Content-Security-Policy meta tag on every page | it is the page's only policy: a static host cannot send headers |
 | `lang="en-GB"` on every page | the site is UK English end to end, feeds included |
 | `og:locale` is `en_GB` and `og:image` is present and absolute | the theme hardcoded `en_US` and emitted no image at all; both are read from the site now |
+| every rendered date is in one of the two shared formats | the homepage's series parts printed the old i18n string (`Sep 03 2026`) and the series page printed that beside the shared partial, so a series showed its span of dates twice in two styles (2026-10-16) |
 | every internal link, asset and anchor resolves | a slug typo or a moved page is a 404 for a reader and invisible to a Hugo build |
 | no pruned path is back in the build | 6.6 MB of CJK slices and four icons the theme ships were being deployed; `npm run prune` removes them and this is what notices if that stops |
 | `robots.txt` declares an absolute sitemap, and `sitemap.xml` agrees with it | the two are only worth anything as a pair: Hugo's built-in robots.txt names no sitemap, and the sitemap is generated with no template of its own, so nothing else here would notice it listing a dead URL or a different origin than the one robots advertises |
+| links and sitemap entries are read the way a browser reads them | a URL arrives here as text, and Go's html/template escapes a literal `+` as `&#43;`: the `Visual C++` tag's link is written `/tags/visual-c&#43;&#43;/`, and read undecoded its `#` split the path at `tags/visual-c&`, reporting eleven links and a sitemap entry that a reader can follow (2026-10-16) |
+
+The tree it runs on has to be an *indexed* build: `/search/` links Pagefind's stylesheet and script,
+which `npm run search` writes after Hugo has rendered, so a bare `hugo` tree fails those two links —
+correctly, since that tree's search box does not work either. The build scripts run the index for that
+reason, which is what makes `npm run build:drafts && npm run check:html` an honest pair.
 
 Pagination aliases (`…/page/1/`) are meta-refresh stubs and are skipped. `hugo server` writes to
 `public/` by default and injects `/livereload.js` into every page — the link check ignores that one
-URL so an accidentally-inspected dev-server tree does not look like a site defect.
+URL so an accidentally-inspected dev-server tree does not look like a site defect. A served tree can
+be *recognised* too: it copies the theme's whole `static/` directory and runs no prune, so the six
+pruned paths are expected in it rather than a regression, and its sitemap is written at the dev
+origin. When livereload gives one away, those artifact checks are skipped and the tree is named
+instead — one line that says what to run, not six that say the site has broken. The run still exits
+non-zero, because a tree that is not an artifact must not be reported as a clean one.
 
 ## `e2e/` — the Playwright suite
 
@@ -65,7 +78,8 @@ everything else has to pass with no baseline.
 
 - the homepage series list and the `/categories/` accordion — both with **JavaScript disabled**,
   because "a `<details>` element needs no script" is the claim and a test with JS on cannot tell
-  the difference;
+  the difference. The same test pins where a series card's count sits (the title row's right-hand
+  cell, above the parts) and that the whole card — not only its title — links to the series;
 - the theme toggle: the `dark` class, the stored preference, and that a reload starts dark;
 - a post card: hover lifts the border, clicking goes to the post, and the *first card on every
   list surface* has the same computed border, radius and fill in light **and** dark — the parity
@@ -95,6 +109,20 @@ commit subject, and the rule that a commit changing only the front matter is not
 is an integration test against a **throwaway repository** it creates, commits to and deletes — three
 commits, one of which only seeds the history — because asserting against this repository's own history
 would fail the first time anyone edits a post.
+
+**`tailwind-shim.test.mjs`** covers [tools/tailwind-shim.mjs](../tools/tailwind-shim.mjs), the repair
+that lets Hugo run the Tailwind CLI on a pnpm-installed checkout. Its unit cases apply Hugo's own
+three-step lookup to the shapes a `node_modules/.bin/tailwindcss` can have — npm's wrapper, pnpm's
+wrapper (trimmed copies of what pnpm 12.9.1 wrote, NODE_PATH line and all), a symlink and a Node
+shebang script — so a change to either package manager's output shows up as a failing test here rather
+than as `binary "tailwindcss" is not a Node.js script` after every page has rendered. Its integration
+case builds a fake `@tailwindcss/cli`, repairs it, and then *runs* the CLI through the repaired shim,
+because a wrapper Hugo accepts but a shell cannot execute would be a worse bug than the one being
+fixed. The symlink case skips on Windows, where creating a file symlink needs Developer Mode.
+
+**`clean-artifact.test.mjs`** covers the pre-build wipe: that it empties the tree it was given, leaves
+its siblings alone, reports what it removed, and refuses a path that names the repository root or lands
+outside it.
 
 ## Adding a test
 
