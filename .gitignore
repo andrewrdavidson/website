@@ -15,6 +15,7 @@ hugo.linux
 
 # node modules
 node_modules/
+node_modules/.package-lock.json
 
 # Playwright: failure traces and the HTML report
 test-results/
