@@ -26,3 +26,5 @@ playwright-report/
 # happened to exist when this was written.
 .tmp-*
 .freebuff/
+docs/BlogIssues-Fixes.md
+docs/BlogIssues.md
