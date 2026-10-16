@@ -28,10 +28,14 @@ npm run build:drafts   # same, with content marked `draft = true` included
 npm run search         # build the Pagefind index over ./public (see "Search" below)
 npm run prune          # drop files the theme ships but this site never serves (see "Deploy")
 npm run og:image       # regenerate static/images/og-default.png (the social card)
+npm run history        # show each page's git commits and the `history` front matter they imply
+npm run history:write  # write that front matter into content/ (see "Post history" below)
+npm run history:check  # fail if any page is out of date — CI, or a pre-commit hook
 npm run preview        # serve a built ./public on http://localhost:8081 (no index? see Search)
 npm run check:html     # static checks over ./public: headings, inline scripts, policy, lang
 npm run test:prepare   # build + index exactly what the test suite expects to find
 npm test               # Playwright suite against a built site (see tests/README.md)
+npm run test:tools     # unit and integration tests for tools/ (node --test, no browser)
 npm run test:install   # install the Chromium build the suite needs (once)
 ```
 
@@ -71,6 +75,51 @@ Full-text search is [Pagefind](https://pagefind.app/), which indexes the *built*
 so `/search/` only works after `npm run search`, and a plain `hugo server` session
 legitimately shows the template's "index is generated at deploy time" notice. CI runs it
 between the Hugo build and the artifact upload.
+
+## Post history
+
+Every post can carry a `[[history]]` array — `version`, `date`, `author`, `note` — that
+`layouts/_default/single.html` renders as a table at the foot of the page, newest first and only when
+there is more than one entry (#7). [tools/post-history.mjs](tools/post-history.mjs) derives it from the
+page's own git commits:
+
+```bash
+npm run history                       # the report: commits, what the front matter holds, what would change
+npm run history:write                 # apply it (add a path to work on one page)
+npm run history:check                 # exit 1 instead — the form to put in a pipeline
+```
+
+A report looks like this, and the marker on the right of each entry says where the label and the note
+came from:
+
+```
+content/posts/prune-git-branches/index.md  ·  2 commits, 2 changed the body  ·  front matter has none  ·  would write 2 entries
+    1.0  2026-10-08T09:32:14+01:00  Andrew Davidson   Updates with more draft posts  (c9e0a22)
+    1.1  2026-10-15T15:46:37+01:00  Andrew Davidson   Fix invalid markdown header level  (ee6e8d1)
+```
+
+Two rules are worth knowing before you run it, because both are what make it safe to re-run:
+
+- **A note and a label already in the front matter are kept** when their entry matches a commit by
+timestamp, so the hand-written notes on
+[content/posts/get-set-ip-address-with-powershell/index.md](content/posts/get-set-ip-address-with-powershell/index.md)
+(`First published`, `Added the old-school ipconfig example`) survive every run untouched — the report
+marks them `(kept from the front matter)`. Version labels default to `1.0`, `1.1`, …
+- **A commit that only changed the front matter is not an entry.** Otherwise the commit that seeds a
+page's history becomes an entry in the history it seeded. The comparison is real: the page's body at
+that commit against the page's body at its parent.
+
+A page with fewer than two commits that changed its *body* gets no block at all, mirroring the
+template, which renders nothing for a lone entry because that is just the publication date the header
+already shows. Pages with no `date` (the About page, the section indexes) are skipped, and a page git
+cannot see at all is left exactly as it is. `npm run history:write` is the only thing that writes, and
+the only thing it touches is the `[[history]]` block.
+
+**`history:write` is a local step, never a build step.** The notes it writes are commit subjects, and a
+visitor reads them, so the tool prints a reminder to edit them before committing. Nothing in
+`.github/workflows/hugo.yaml` calls it, and nothing should: a build that rewrote front matter would
+deploy a site that does not match the repository. `npm run history:check` is the safe shape for a
+pipeline — it fails instead of writing.
 
 ## Deploy
 

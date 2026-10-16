@@ -8,6 +8,7 @@ exist under `hugo server`.
 npm run test:prepare     # build into public/ with drafts, at http://localhost:8081/, index, prune
 npm test                 # the Playwright suite (starts its own static server on 8081)
 npm run check:html       # the static checks over the same public/ directory
+npm run test:tools       # node --test over tools/ — no build, no browser, a second or so
 ```
 
 `npm run test:prepare` matters for three reasons: most content is still `draft = true` (every series
@@ -78,6 +79,22 @@ everything else has to pass with no baseline.
 
 Third-party noise is filtered in `e2e/helpers.ts` (giscus, and Pagefind's autofocus notice); a
 cross-origin failure is ignored, a same-origin one is not.
+
+## `tools/` — the unit layer
+
+`npm run test:tools` runs Node's own test runner over `tests/tools/`, for the code that is neither
+markup nor browser behaviour: the helpers the repository's build tools are made of. It needs no build
+and no browser, which is the point — a tool that decides what goes into the front matter of every
+content file should be checkable in a second on any machine.
+
+**`post-history.test.mjs`** covers [tools/post-history.mjs](../tools/post-history.mjs), which seeds
+and refreshes each page's `[[history]]` front matter from its git commits. The unit cases pin the parts
+that are invisible in a diff: the byte-range replacement that must leave CRLF endings and the rest of
+the front matter untouched, the merge that must keep a hand-written note rather than replace it with a
+commit subject, and the rule that a commit changing only the front matter is not an entry. The last case
+is an integration test against a **throwaway repository** it creates, commits to and deletes — three
+commits, one of which only seeds the history — because asserting against this repository's own history
+would fail the first time anyone edits a post.
 
 ## Adding a test
 
