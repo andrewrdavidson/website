@@ -66,9 +66,12 @@
       {{/* Cards highlight their border on hover, the same green the post cards use (#29
            follow-up): `hover:border-accent-line` needs a border-colour transition, so
            `transition-shadow` becomes `transition` — otherwise the outline snaps. */}}
-      <div class="p-6 transition duration-200 bg-surface border border-line hover:border-accent-line rounded">
+      <div class="series-card relative group">
+        <a href="{{ $s.term.Page.Permalink }}" class="absolute inset-0 z-10" aria-label="{{ $s.term.Page.Title }}"></a>
+        <div class="p-6 transition duration-200 bg-surface border border-line group-hover:border-accent-line rounded">
+          <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
 
-        {{/* Series name, then the parts behind a native <details> disclosure (#36).
+          {{/* The series name, then its parts behind a native <details> disclosure (#36).
 
              What this replaced, and why it does not come back: the name sat beside a <button>
              whose opening worked by calling an inline `toggleSeriesList(...)` function, and the
@@ -79,6 +82,30 @@
              keyboard operable, it announces its own expanded state, and it still works when the
              script that would have driven it never loads.
 
+             Where the count sits (2026-10-16). The toggle used to be the right-hand cell of the
+             title's row; converting it to a <details> put the summary and the part list in one
+             element and left "Contains N posts" on a line of its own under the title — reported
+             as "that is now rendering underneath the title, not to the right of the card as it
+             used to be". So the row is back: a `flex flex-wrap` line of the shape the post cards
+             use, the name in the flexible cell and the count in the shrinking one, wrapping to a
+             second line on a card too narrow for both — the same row the post card's date sits in,
+             with the same `min-w-[12rem]` floor on the name.
+
+             Which is why the list is the disclosure's *sibling* and not its content, the one place
+             this template departs from "a <details> holds what it discloses". A <details> is one box
+             around the summary and the content, so the summary can either be a cell of the title row
+             or hold the list, not both: the list would be boxed into the count's own column. Shown
+             and hidden by its own rule in assets/css/site.css keyed off the disclosure's `open`
+             attribute, so nothing here needs a script — and with CSS off the parts are simply
+             visible, which is what a bare <details> degrades to as well.
+
+             The whole card is a link now, asked for the same day — "make each series card
+             clickable to go to that series content, not just clicking on the title". It is the
+             full-cover anchor the post cards and the /series/ index use, which is why the wrapper
+             is `relative group` and the name is plain text that takes the card's hover colour.
+             Everything that keeps its own click — the summary and every part link — sits above the
+             anchor with `relative z-20`.
+
              The chevron rotation and the part-list styling are in assets/css/site.css
              (.series-disclosure, .series-parts) because the open/closed state is a CSS
              attribute selector on the parent.
@@ -86,29 +113,27 @@
              The heading level is deliberate: the homepage's sections are <h2> and a series name
              is the title of one of its cards, so it is an <h3> — the same relationship the
              homepage's post cards have under "My Recent Posts". */}}
-        <h3 class="text-xl font-semibold text-fg">
-          <a href="{{ $s.term.Page.Permalink }}" class="no-underline text-fg hover:text-accent transition-colors">{{ $s.term.Page.Title }}</a>
-        </h3>
-
-        <details class="series-disclosure mt-3">
-          <summary class="btn-series-toggle">
-            <span>Contains {{ $s.term.Count }} {{ cond (eq $s.term.Count 1) "post" "posts" }}</span>
-            <svg class="series-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </summary>
-          <ul class="series-parts">
-            {{ range $s.term.Pages.ByDate }}
-            <li>
-              <a href="{{ .Permalink }}">{{ .Title }}</a>
-              <span class="text-sm text-fg-dim">
-                {{ .Date.Format (i18n "date_month_day_format" | default "Jan 02 2006") }}
-              </span>
-            </li>
-            {{ end }}
-          </ul>
-        </details>
-
+            <h3 class="flex-1 min-w-[12rem] text-xl font-semibold text-fg group-hover:text-accent transition-colors">{{ $s.term.Page.Title }}</h3>
+            <details class="series-disclosure ml-auto">
+              <summary class="btn-series-toggle relative z-20">
+                <span>Contains {{ $s.term.Count }} {{ cond (eq $s.term.Count 1) "post" "posts" }}</span>
+                <svg class="series-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </summary>
+            </details>
+            <ul class="series-parts relative z-20 w-full">
+              {{ range $s.term.Pages.ByDate }}
+              <li>
+                <a href="{{ .Permalink }}">{{ .Title }}</a>
+                <span class="text-sm text-fg-dim">
+                  {{ partial "format-date.html" .Date }}
+                </span>
+              </li>
+              {{ end }}
+            </ul>
+          </div>
+        </div>
       </div>
       {{ else }}
       <p class="text-fg-muted italic">No series found.</p>

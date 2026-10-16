@@ -534,6 +534,23 @@ than shrinking the page column, which would narrow every card on the site with i
 .series-disclosure > summary::-webkit-details-marker,
 .category-group > details > summary::-webkit-details-marker { display: none; }
 
+/* The homepage's series card (2026-10-16). Its title row is a `flex flex-wrap` line — the series
+ * name in the flexible cell, the "Contains N posts" toggle in the shrinking one — so the summary
+ * has to be a cell of that row while the parts keep the card's full width. A <details> is one box
+ * around the summary and its content, which cannot be both, so in the markup the toggle's <details>
+ * holds only its summary and the part list is its sibling (layouts/index.html says why).
+ *
+ * That leaves the closed state to state here: the element that would normally hide the content has
+ * none, so the list below the disclosure is hidden while it is closed, from its own `open`
+ * attribute. Still no script — and with CSS off the parts are simply visible, which is what a bare
+ * <details> degrades to as well.
+ *
+ * (`display: contents` on the <details> was the first attempt at this, and it is a trap: Chrome
+ * leaves an empty content wrapper behind as a flex item, which takes a gap of its own and leaves
+ * the count 16px short of the card's edge, and at 390px the wrapped count landed on its own line
+ * left-aligned. The structure above needs no such trick and measures the same in every engine.) */
+.series-card .series-disclosure:not([open]) ~ .series-parts { display: none; }
+
 .series-chevron,
 .category-chevron { flex-shrink: 0; transition: transform .2s ease-in-out; }
 .series-chevron { width: .75rem; height: .75rem; margin-left: .375rem; }
