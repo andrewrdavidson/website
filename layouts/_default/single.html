@@ -181,7 +181,12 @@
     {{ with .Params.history }}{{ if gt (len .) 1 }}
     <section class="article-inner pb-6" aria-labelledby="post-history-heading">
       <h2 id="post-history-heading" class="text-base font-semibold text-fg-strong mb-2">{{ i18n "post_history" | default "Post history" }}</h2>
-      <div class="overflow-x-auto">
+      {{/* `tabindex="0"` and a name are not decoration: below `sm:` the four columns overflow their
+           container, and a scrollable box that cannot be reached from the keyboard is a WCAG 2.1.1
+           fault (`scrollable-region-focusable`, serious). Found by the suite at phone width the moment
+           a second page carried a table — the one hand-seeded post is not in the tested page list, so
+           the rule had never fired. `role="region"` is what makes the `aria-label` meaningful. */}}
+      <div class="overflow-x-auto" tabindex="0" role="region" aria-label="{{ i18n "post_history" | default "Post history" }}">
         <table class="w-full text-sm border border-line rounded-md">
           <thead class="bg-canvas text-fg-faint">
             <tr>
