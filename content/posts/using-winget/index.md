@@ -1,5 +1,5 @@
 +++
-date = '2026-10-06T19:39:00+01:00'
+date = '2026-10-08T09:32:14+01:00'
 draft = true
 title = 'Using winget on Windows'
 description = 'Use winget to install, update, search for, and manage software packages from the command line on Windows.'
@@ -7,6 +7,19 @@ tags = ['winget', 'PowerShell', 'Windows', 'Software', 'Package Manager']
 categories = ['Articles']
 author = 'Andrew Davidson'
 summary = 'Use Windows Package Manager to install apps, check for updates, search the catalog, and manage software from the command line.'
+
+# Version history, seeded from this file's git commits — tools/post-history.mjs (npm run history). Edit the notes and labels freely; a re-run keeps them.
+[[history]]
+version = '1.0'
+date = 2026-10-08T09:32:14+01:00
+author = 'Andrew Davidson'
+note = 'Initial Version'
+
+[[history]]
+version = '1.1'
+date = 2026-10-15T15:46:37+01:00
+author = 'Andrew Davidson'
+note = 'Fix invalid markdown header level'
 +++
 
 Windows Package Manager, also known as `winget`, is the built-in command-line tool for installing and managing software on Windows. It is especially useful when you want a faster, more repeatable way to install apps than browsing the Microsoft Store or downloading installers manually.

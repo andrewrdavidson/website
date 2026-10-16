@@ -1,5 +1,5 @@
 +++
-date = '2026-06-23T00:00:00+08:00'
+date = '2026-10-05T16:50:46+01:00'
 draft = true
 title = 'Getting I219V drivers to work in Server 2022/25'
 description = 'This is the first post'
@@ -7,6 +7,19 @@ tags = ['Network Driver', 'Intel', 'Intel I219-V', 'I219-V']
 categories = ['Articles']
 author = 'Andrew Davidson'
 summary = 'How I got the Intel I219-V network drivers working on Windows Server 2022/2025, including driver pack download, .inf file editing, and SecureBoot/UEFI considerations.'
+
+# Version history, seeded from this file's git commits — tools/post-history.mjs (npm run history). Edit the notes and labels freely; a re-run keeps them.
+[[history]]
+version = '1.0'
+date = 2026-10-05T16:50:46+01:00
+author = 'Andrew Davidson'
+note = 'Initial Version'
+
+[[history]]
+version = '1.1'
+date = 2026-10-15T15:46:37+01:00
+author = 'Andrew Davidson'
+note = 'Fix invalid markdown header level'
 +++
 
 ## Introduction
