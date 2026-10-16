@@ -6,11 +6,14 @@
     {{/* Span of the series: its first post through its last, in reading order. */}}
     {{ $first := (index .Pages.ByDate 0).Date }}
     {{ $last := (index .Pages.ByDate.Reverse 0).Date }}
-    {{ $dateFormat := i18n "date_month_day_format" | default "Jan 02 2006" }}
     <div class="text-fg-muted text-sm mt-2">
       {{ len .Pages }} {{ i18n "articles" | default "articles" }}
-      <span class="text-fg-faint">· {{ if eq $first.Unix $last.Unix }}{{ $first.Format $dateFormat }}{{ else }}{{ $first.Format $dateFormat }} – {{ $last.Format $dateFormat }}{{ end }}</span>
-      <span class="text-fg-faint">· {{ if eq $first.Unix $last.Unix }}{{ partial "format-date.html" $first }}{{ else }}{{ partial "format-date.html" $first }} – {{ partial "format-date.html" $last}}{{ end }}</span>
+      {{/* One span, not two (2026-10-16). This row carried the old i18n `date_month_day_format`
+           ("Sep 03 2026 – Sep 17 2026") *and* the shared partial, so a series printed its span of
+           dates twice in a row, in two different styles. The partial is the site's format, and
+           check-html.mjs now fails a page whose visible text carries any date that is not one of
+           the two the partials produce. */}}
+      <span class="text-fg-faint">· {{ if eq $first.Unix $last.Unix }}{{ partial "format-date.html" $first }}{{ else }}{{ partial "format-date.html" $first }} – {{ partial "format-date.html" $last }}{{ end }}</span>
     </div>
   </div>
   {{/* Year groupings (#26, level R2): the same badge and hairline markup the /posts/ list uses,
@@ -41,7 +44,12 @@
             <div class="series-index w-8 shrink-0 text-2xl font-bold transition-colors">{{ index $numbers .RelPermalink }}</div>
             {{ $part := . }}
             <div class="min-w-0">
-              <h3 class="text-xl font-medium text-fg group-hover:text-accent transition-colors">{{ .Title }}</h3>
+              {{/* h2, not h3 (2026-10-16): this page's outline is the series title and then its
+                   parts — there is no intervening level, so a card title at h3 was a heading jump
+                   from h1 that check-html.mjs reports. The year groupings above are plain <div>s
+                   (no heading of their own), which is why the cards have to be the second level
+                   here, where on /posts/ the same card markup sits under a year <h2>. */}}
+              <h2 class="text-xl font-medium text-fg group-hover:text-accent transition-colors">{{ .Title }}</h2>
               {{/* Was a bare `2006-01-02`, the last raw ISO date on the site while every other list
                    used the shared format (#13). Under a year heading that also repeated the year,
                    so it now matches /posts/, which prints the full date under its year badge too. */}}
