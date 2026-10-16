@@ -177,8 +177,21 @@
     
     {{/* Post history (#7): versions, dates and authors from the post's `history` front matter
          array, newest first. Shown only when there is more than one entry — a lone entry is
-         just the publication date, which the header already carries. */}}
-    {{ with .Params.history }}{{ if gt (len .) 1 }}
+         just the publication date, which the header already carries.
+
+         Who sees it (2026-10-16, asked as "Is it possible to get the Post History section to
+         appear either when we are running the server in dev/test mode and not in the final built
+         website OR enable it by setting a flag in the main toml config file?"). A `history` block
+         is a note about the page's own edits — versions, commit dates, what changed — which is the
+         author's business more than the reader's, so the section follows the build: `hugo server`
+         and the drafts build the test suite runs on show it, a deploy build does not. Setting
+         `params.showPostHistory` in hugo.toml decides it outright instead, either way. The front
+         matter is untouched, so `npm run history:write` and `npm run history:check` keep working
+         whatever this renders. */}}
+    {{ $showHistory := false }}
+    {{ if isset site.Params "showposthistory" }}{{ $showHistory = site.Params.showPostHistory }}{{ end }}
+    {{ if .Draft }}{{ $showHistory = true }}{{ end }}
+    {{ if $showHistory }}{{ with .Params.history }}{{ if gt (len .) 1 }}
     <section class="article-inner pb-6" aria-labelledby="post-history-heading">
       <h2 id="post-history-heading" class="text-base font-semibold text-fg-strong mb-2">{{ i18n "post_history" | default "Post history" }}</h2>
       {{/* `tabindex="0"` and a name are not decoration: below `sm:` the four columns overflow their
@@ -209,7 +222,7 @@
         </table>
       </div>
     </section>
-    {{ end }}{{ end }}
+    {{ end }}{{ end }}{{ end }}
 
     <footer class="py-6 bg-canvas border-t border-line-soft">
       <div class="article-inner">
