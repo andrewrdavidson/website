@@ -445,3 +445,312 @@ test.describe('the content width', () => {  /* 84rem for the page column — 1.5
     ).toBeLessThanOrEqual(16);
   });
 });
+test.describe('the post header’s meta row', () => {
+  /* Asked for on 2026-10-16: "The items under the title: Post, Last update, Author, Read time and
+     not aligned horizontally - fix".
+
+     Four facts sat at three different offsets on one line. The date was a bare text node beside a
+     bare icon, so the row's own `gap-4` (1rem) landed *between an icon and its own text* while
+     every other icon sat 4–6px from the text it belonged to. The "Last updated" group carried
+     `pb-2`, which made its flex item 0.5rem taller than its neighbours, so `items-center` centred
+     its text 4px higher than the rest of the row — the one that reads as "not aligned". And the
+     date and author icons were sized and spaced by an inline `style` where the others used classes.
+
+     The row is now one `inline-flex items-center gap-1.5` group per fact (`.article-meta`), so the
+     0.375rem inside a group is uniform and the 1rem between groups belongs to the row. Measured on
+     the built page, before → after: the "Last updated" text centred at 177 with the other three at
+     181 → all four at 181; the date icon 20px from its text against 4/6/6px → 6/6/6/6; a 28px-tall
+     group among 20px ones → all four 20px.
+
+     Asserted rather than eyeballed, in both projects. The row wraps at 390px, so the centre
+     comparison is made per visual line: a wrapped row must not fail for being wrapped. */
+  const POST = '/posts/using-winget/';
+
+  const measure = (page: Page) =>
+    page.evaluate(() => {
+      const row = document.querySelector('.article-meta') as HTMLElement;
+      const share = row.querySelector('[data-share-widget]') as HTMLElement;
+      const groups = ([...row.children] as HTMLElement[]).filter((el) => el !== share);
+
+      return groups.map((group) => {
+        const box = group.getBoundingClientRect();
+        const iconEl = group.querySelector('svg') as SVGElement;
+        const icon = iconEl.getBoundingClientRect();
+
+        /* The group's first piece of content after its icon: a text node in three of the four, the
+           `<time>` element in the date group. Measured with a Range, so both come back as a box
+           rather than as a node type the assertions have to branch on.
+
+           The icon is excluded by reference and not by tag name: in an HTML document an SVG
+           element's `tagName` is the lowercase `svg`, so a `tagName !== 'SVG'` test matches the
+           icon itself — which reports an empty `textContent` and a zero gap, and would have made
+           the gap and centre assertions below pass for the wrong reason. */
+        const content = [...group.childNodes].find((node) => {
+          if (node === iconEl) return false;
+          if (node.nodeType === 3) return node.textContent!.trim() !== '';
+          return node.nodeType === 1;
+        }) as Node;
+        const range = document.createRange();
+        range.selectNodeContents(content);
+        const text = range.getBoundingClientRect();
+
+        return {
+          text: (content.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 45),
+          height: +box.height.toFixed(2),
+          textCentre: +((text.top + text.bottom) / 2).toFixed(2),
+          iconHeight: +icon.height.toFixed(2),
+          iconCentre: +((icon.top + icon.bottom) / 2).toFixed(2),
+          iconGap: +(text.left - icon.right).toFixed(2)
+        };
+      });
+    });
+
+  test('keeps every fact on the same line, centred, with one icon gap', async ({ page }) => {
+    await page.goto(POST);
+    const groups = await measure(page);
+
+    expect(groups.map((group) => group.text), 'the four facts the row carries').toEqual([
+      '6th October 2026 at 7:39pm',
+      'Last updated on 15th October 2026 at 3:46pm',
+      'By Andrew Davidson',
+      '2 min read'
+    ]);
+
+    /* Every group is a whole number of line boxes tall, so none of them can be carrying padding
+       that lifts its contents off the row's centre line. The line box itself is taken from the
+       shortest group rather than hard-coded: at 390px one fact wraps inside its own group (20px →
+       40px), which is the wrapper's business, but the 8px `pb-2` this replaced is a height no
+       number of line boxes can account for. */
+    const line = Math.min(...groups.map((group) => group.height));
+    for (const group of groups) {
+      expect(
+        group.height % line,
+        `"${group.text}": ${group.height}px is not a whole number of ${line}px line boxes`
+      ).toBe(0);
+    }
+
+    // The icon and the text of each fact share a centre: the `pb-2` that lifted the "Last updated"
+    // text 4px was invisible to the group's own box, which stayed aligned.
+    for (const group of groups) {
+      expect(
+        Math.abs(group.iconCentre - group.textCentre),
+        `"${group.text}": icon centre ${group.iconCentre} against text centre ${group.textCentre}`
+      ).toBeLessThanOrEqual(0.51);
+      expect(group.iconHeight, `"${group.text}": icon height`).toBe(16);
+    }
+
+    // One gap everywhere. It was 20px for the date — the row's 1rem gap landing between an icon and
+    // its own text — against 4–6px for the rest.
+    const gaps = [...new Set(groups.map((group) => group.iconGap))];
+    expect(gaps, `icon-to-text gaps: ${gaps.join(', ')}`).toHaveLength(1);
+
+    // On a narrow viewport the row wraps; the facts on any one line still share a centre line, which
+    // is the same guarantee stated for however many lines there are.
+    const lines = new Map<number, typeof groups>();
+    for (const group of groups) {
+      const line = [...lines.keys()].find((centre) => Math.abs(centre - group.textCentre) <= 0.51);
+      if (line === undefined) lines.set(group.textCentre, [group]);
+      else lines.get(line)!.push(group);
+    }
+    expect(lines.size, 'the row is at least one line').toBeGreaterThan(0);
+    for (const [centre, line] of lines) {
+      const centres = line.map((group) => group.textCentre);
+      expect(new Set(centres).size, `line at ${centre}: ${centres.join(', ')}`).toBe(1);
+    }
+  });
+});
+
+test('the series index groups each card under the year its series started', async ({ page }) => {
+  /* Asked for on 2026-10-16: "the series page http://localhost:1313/series has the year marker on
+     it but it's wrong, it should show once for each year showing the series' whose first post
+     starts in that year under it, similar to this page http://localhost:1313/posts/".
+
+     The old template emitted one badge per series and filled it from `{{ .Key }}` read off a dict
+     that has no `Key`, so every series carried an empty circle. This asserts the real rule — and it
+     does so from the parts rather than from the index's own date line: each card is followed to its
+     series page, the earliest part's date is read there, and its year has to be the year of the
+     heading the card sits under. A test that read the index's own "Published:" text would agree
+     with the template even if both were wrong. */
+  await page.goto('/series/');
+
+  const groups = await page.evaluate(() =>
+    [...document.querySelectorAll('.series-year-group')].map((group) => ({
+      year: (group.querySelector('h2 .year-indicator-badge')?.textContent || '').trim(),
+      cards: [...group.querySelectorAll('a[href^="/series/"]')].map((card) => ({
+        href: card.getAttribute('href') || '',
+        title: (card.querySelector('h3')?.textContent || '').trim()
+      }))
+    }))
+  );
+
+  expect(groups.length, 'the index has at least one year group').toBeGreaterThan(0);
+  for (const group of groups) {
+    expect(group.year, 'every heading is a year, not an empty badge').toMatch(/^\d{4}$/);
+    expect(group.cards.length, `the ${group.year} group is not empty`).toBeGreaterThan(0);
+  }
+
+  const years = groups.map((group) => group.year);
+  expect(new Set(years).size, `one heading per year: ${years.join(', ')}`).toBe(years.length);
+  expect(years, 'newest year first, as on /posts/').toEqual([...years].sort().reverse());
+
+  // Every card, checked against the parts on its own series page.
+  let seen = 0;
+  for (const group of groups) {
+    for (const card of group.cards) {
+      await page.goto(card.href);
+      const parts = await page.evaluate(() =>
+        [...document.querySelectorAll('time[datetime]')].map((time) => time.getAttribute('datetime') || '')
+      );
+      expect(parts.length, `${card.href}: the series page lists its parts`).toBeGreaterThan(0);
+      const firstYear = parts.map((date) => date.slice(0, 4)).sort()[0];
+      expect(firstYear, `"${card.title}" starts in the year of its heading`).toBe(group.year);
+      seen++;
+    }
+  }
+
+  const total = groups.reduce((count, group) => count + group.cards.length, 0);
+  expect(seen, 'every card on the index was checked').toBe(total);
+});
+
+test('the about page has no back-to-home link', async ({ page }) => {
+  /* Asked for on 2026-10-16: "remove the 'back to home' link from the about page". It was the last
+     thing in the article, under the prose. The page resolves to a project-level copy of the theme's
+     template (themes/void is a submodule), so the assertion covers the whole page for the link —
+     anywhere, not just where it used to be — and then checks that the page's own parts came with
+     the copy. */
+  await page.goto('/about/');
+
+  expect(await page.locator('a', { hasText: /back to home/i }).count()).toBe(0);
+  await expect(page.locator('header a', { hasText: /^Home$/ })).toHaveCount(1);
+
+  await expect(page.locator('h1')).toHaveText('About');
+  await expect(page.locator('h2')).toHaveCount(2);
+  await expect(page.locator('article > .about-card')).toHaveCount(1);
+  await expect(page.locator('main .theme-card')).toHaveCount(1);
+});
+test('each card on a series page shows that part’s own table of contents', async ({ page }) => {
+  /* Asked for on 2026-10-16: "on the series page that shows the articles for that series:
+     http://localhost:1313/series/building-vm-labs-with-proxmox-and-terraform/ show the toc for that
+     article in each articles card".
+
+     The card list already carried each part's title, date and summary; the outline came next. It is
+     built from the part's `.Fragments` rather than from `.TableOfContents`, because Hugo's TOC emits
+     bare `#id` fragments and those headings are on another page — the links have to carry the part's
+     URL, which is the part of this a regex over generated HTML would get wrong. See
+     layouts/partials/toc-tree.html.
+
+     Then, asked for on the same day: "make the table of contents [...] non-interactive - a header
+     with a bulleted list of parts". So the outline is checked as static content too — a header, a
+     real `<ul>` with markers, every entry visible without touching anything, and no disclosure left
+     anywhere in a card.
+
+     Checked against the parts themselves rather than against the markup: for each card, the entries
+     must be *exactly* that part's own content headings, in order — so a card listing the wrong part's
+     outline, losing its nesting or carrying a stale anchor fails here, and so does a part with no
+     headings that grew a TOC anyway. `.article-prose` is what makes "its own content" precise: the
+     comment thread's heading is an `<h2>` too, and is deliberately not part of an outline. */
+  await page.goto(SERIES_PAGE);
+
+  const cards = await page.evaluate(() =>
+    [...document.querySelectorAll('main ol > li')].map((card) => {
+      const toc = card.querySelector('.toc-card');
+      return {
+        href: card.querySelector('a[href^="/series/"]')?.getAttribute('href') || '',
+        label: (toc?.querySelector('.toc-card-title')?.textContent || '').trim(),
+        entries: [...(toc?.querySelectorAll('a') || [])].map((a) => a.getAttribute('href') || ''),
+        texts: [...(toc?.querySelectorAll('a') || [])].map((a) =>
+          (a.textContent || '').replace(/\s+/g, ' ').trim()
+        ),
+        nested: (toc?.querySelectorAll('li > ul') || []).length
+      };
+    })
+  );
+
+  expect(cards.length, 'the series page has cards to check').toBeGreaterThan(0);
+  expect(
+    cards.filter((card) => card.entries.length > 0).length,
+    'at least one part on this series page has an outline'
+  ).toBeGreaterThan(0);
+
+  for (const card of cards) {
+    await page.goto(card.href);
+    const part = await page.evaluate(() => {
+      const headings = [
+        ...document.querySelectorAll(
+          '.article-prose h1, .article-prose h2, .article-prose h3, .article-prose h4, .article-prose h5, .article-prose h6'
+        )
+      ];
+      /* Each heading's text without the copy-link button the render hook puts inside it, so the
+         comparison is heading-to-entry and not heading-plus-button-to-entry. */
+      const items = headings
+        .filter((heading) => heading.id)
+        .map((heading) => {
+          const clone = heading.cloneNode(true);
+          clone.querySelectorAll('.heading-anchor').forEach((a) => a.remove());
+          return { id: heading.id, text: (clone.textContent || '').replace(/\s+/g, ' ').trim() };
+        });
+      return {
+        ids: items.map((item) => item.id),
+        texts: items.map((item) => item.text),
+        levels: headings.map((heading) => Number(heading.tagName.slice(1)))
+      };
+    });
+
+    const fragments = card.entries.map((href) => `#${decodeURIComponent(href.split('#')[1] || '')}`);
+    const expected = part.ids.map((id) => `#${id}`);
+    expect(fragments, `${card.href}: the card lists exactly this part's headings, in order`).toEqual(expected);
+
+    /* Text as well as target. A card that double-escapes an entity (`x32 &amp; x64`, where the page
+       says `x32 & x64`) links to the right place and reads wrong, which is the defect this check
+       was added for. */
+    expect(card.texts, `${card.href}: each entry names the heading it links to`).toEqual(part.texts);
+
+    for (const entry of card.entries) {
+      expect(entry.startsWith(card.href), `"${entry}" should link into ${card.href}`).toBe(true);
+    }
+
+    // A part with headings below its top level is listed as a tree, not flattened — and one without
+    // them must not be.
+    const nests = part.levels.length > 0 && part.levels.some((level) => level > part.levels[0]);
+    expect(card.nested > 0, `${card.href}: nested headings should nest in the card (${card.nested})`).toBe(nests);
+
+    if (card.entries.length) {
+      expect(card.label, `${card.href}: the contents are headed`).toMatch(/contents/i);
+    }
+  }
+
+  /* Static content, and stated as such: no disclosure anywhere in a card, a header, a real bulleted
+     list, and entries that are on screen with nothing clicked. The bullets come from `list-disc` —
+     Tailwind's preflight removes markers from every `ul` — and the theme's `.toc-nav` is
+     deliberately not used here, since its links are full-width blocks with their own padding (a
+     chip list, which is right for a sidebar and wrong for this). */
+  await page.goto(SERIES_PAGE);
+  await expect(page.locator('main ol > li details.toc-card'), 'no disclosure in the cards')
+    .toHaveCount(0);
+
+  const first = page.locator('main ol > li .toc-card').first();
+  await expect(first.locator('.toc-card-title')).toBeVisible();
+  await expect(first.locator('.toc-card-title')).toHaveText(/contents/i);
+
+  const markers = await first.locator('ul.toc-list').first().evaluate((el) => getComputedStyle(el).listStyleType);
+  expect(markers, 'the parts are a bulleted list').toBe('disc');
+
+  const link = first.locator('.toc-list a').first();
+  await expect(link, 'every entry is visible without any interaction').toBeVisible();
+  const target = (await link.getAttribute('href')) || '';
+  expect(target, 'the first entry points at a heading').toContain('#');
+
+  /* And it is reachable. The card is covered by its own full-cover link (an absolutely positioned
+     `inset-0 z-10` sibling), so an entry that did not outrank it would navigate to the same part
+     *without* the fragment it stands for. Stated before the click, so a covered entry fails as
+     "something is on top of it" rather than as a 30s click timeout. */
+  const hit = await link.evaluate((el) => {
+    const box = el.getBoundingClientRect();
+    const at = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+    return at?.closest('a') === el ? 'the entry itself' : at?.tagName || 'nothing';
+  });
+  expect(hit, 'nothing may cover the parts list').toBe('the entry itself');
+
+  await link.click();
+  await expect(page).toHaveURL(new RegExp(`${target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`));
+});

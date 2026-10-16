@@ -33,7 +33,7 @@
  *
  * Exits non-zero when anything fails, so CI can gate on it.
  */
-import { access, readdir, readFile } from 'node:fs/promises';
+import { access, readdir, readFile, stat } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 
 const root = process.argv[2] || 'public';
@@ -58,6 +58,21 @@ const exists = async (path) => {
   }
 };
 
+/* `exists` is true for a directory, which is what a pruned-path check wants (`fonts/noto-serif-sc`
+   is a directory) and what an on-page link check does not: a URL like `/series/<term>/part1/`
+   resolves to `public/series/<term>/part1`, a directory whose *page* is the `index.html` inside it.
+   Treating that directory as the page made the fragment check below read it as HTML and die with
+   `EISDIR` — an uncaught crash, not a reported problem — as soon as a link carried both a path and
+   a `#fragment` (the series pages' per-card tables of contents; every fragment link before them was
+   a bare `#id` and returned early). Only a file counts as a resolved link. */
+const isFile = async (path) => {
+  try {
+    return (await stat(path)).isFile();
+  } catch {
+    return false;
+  }
+};
+
 /** Resolves one on-page URL to a file in the build, or null when there is nothing to resolve. */
 async function resolveInternal(url, fromFile) {
   if (!url || /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(url)) return null; // mailto:, https:, //cdn…
@@ -74,7 +89,7 @@ async function resolveInternal(url, fromFile) {
   // A relative link may climb out of the build directory; nothing legitimate does.
   if (!target.startsWith(resolve(root))) return { outside: true };
   for (const candidate of [target, join(target, 'index.html')]) {
-    if (await exists(candidate)) return { file: candidate, fragment };
+    if (await isFile(candidate)) return { file: candidate, fragment };
   }
   return { missing: target.replace(resolve(root) + sep, '') };
 }

@@ -1,41 +1,86 @@
 {{ define "main" }}
+{{- /*
+  The /series/ index: every series, one card each, grouped under a year heading.
+
+  The year a series is filed under is the year of its **first** post, and that is the whole point
+  of this template's shape. It used to emit one year badge per series — the year of each series'
+  most recent post — with an empty badge in practice, because the heading read `{{ .Key }}` off a
+  dict that had no such key: the page rendered a full row of blank 4rem circles, one above every
+  card. Asked for as "the series page [...] has the year marker on it but it's wrong, it should
+  show once for each year showing the series' whose first post starts in that year under it,
+  similar to this page /posts/".
+
+  So: group by first-post year, one heading per year, descending — the same badge markup, the same
+  `h1 → h2 → h3` outline and the same `ml-8` indent for the cards as layouts/_default/list.html,
+  so the two lists read alike. Hugo cannot group a taxonomy by anything, and `GroupByDate` works on
+  pages rather than on the dicts built here, so the distinct years are collected by hand and each
+  group is filtered out of the same slice.
+
+  Within a year the cards stay newest-first by their *last* post, which is the order this page has
+  always used (the "series list needs to be newest first" fix, docs/BlogIssues-Fixes.md): the
+  heading groups by when a series started, the order inside it still answers "what has been
+  published lately".
+
+  Keep `.category-count-badge` (assets/css/site.css retargets it for dark mode), the
+  `year-indicator-badge` classes — the shared badge the /posts/ list and the term pages use too —
+  and `.series-year-group`, which is this page's own hook for "one year heading and the cards under
+  it" (the suite reads it to check the grouping). */ -}}
 <div class="max-w-4xl mx-auto px-4 py-8">
   <h1 class="text-3xl font-bold text-center text-fg mb-8">{{ .Title }}</h1>
   <div class="mb-8 text-center text-fg-muted text-sm"><p>{{ i18n "series_help_text" | default "Multi-part posts, in reading order" }}</p></div>
-  {{/* Newest first: Hugo cannot sort a taxonomy by date, so build a slice keyed on each
-       series' most recent post and sort that, instead of the default by-count order. */}}
+
+  {{/* One entry per series: the term, its first and last post dates, and the year the first post
+       falls in. `latest` stays a sort key — Hugo cannot sort a taxonomy by date, so the default
+       by-count order is replaced by hand, as it has been since the newest-first fix. */}}
   {{ $series := slice }}
   {{ range $name, $taxonomy := .Data.Terms }}
-    {{ $series = $series | append (dict "term" $taxonomy "latest" (index $taxonomy.Pages.ByDate.Reverse 0).Date.Unix) }}
+    {{ $first := (index $taxonomy.Pages.ByDate 0).Date }}
+    {{ $last := (index $taxonomy.Pages.ByDate.Reverse 0).Date }}
+    {{ $series = $series | append (dict
+        "term" $taxonomy
+        "first" $first
+        "last" $last
+        "year" ($first.Format "2006")
+        "latest" $last.Unix) }}
   {{ end }}
-  {{ $dateFormat := i18n "date_month_day_format" | default "Jan 02 2006" }}
 
-  <div class="space-y-4">
-    {{ range sort $series "latest" "desc" }}
-    {{ $first := (index .term.Pages.ByDate 0).Date }}
-    {{ $last := (index .term.Pages.ByDate.Reverse 0).Date }}
+  {{/* The distinct years, newest first. Collected rather than assumed: a year with no series that
+       started in it must not appear, and a series spanning a new year must not add a second
+       heading for itself. */}}
+  {{ $years := slice }}
+  {{ range $series }}
+    {{ if not (in $years .year) }}{{ $years = $years | append .year }}{{ end }}
+  {{ end }}
+  {{ $years = sort $years "value" "desc" }}
 
-    {{/* The year is a real <h2> (#36), the same heading /posts/ and the term pages now use, so a
-           series page reads h1 → year → part instead of jumping from h1 to h3. See
-           layouts/_default/list.html for the note on the classes that keep the badge's look. */}}
+  <div class="space-y-16">
+    {{ range $years }}
+    {{ $year := . }}        <div class="series-year-group relative">
       <h2 class="mb-6 mt-0 text-base font-normal flex items-center">
-        <span class="year-indicator-badge flex-shrink-0 w-16 h-16 rounded-full bg-gradient-to-br from-accent-soft to-accent-soft-2 flex items-center justify-center text-accent-strong font-bold text-xl shadow-sm">{{ .Key }}</span>
+        <span class="year-indicator-badge flex-shrink-0 w-16 h-16 rounded-full bg-gradient-to-br from-accent-soft to-accent-soft-2 flex items-center justify-center text-accent-strong font-bold text-xl shadow-sm">{{ $year }}</span>
         <span class="ml-4 h-px bg-gradient-to-r from-accent-line to-transparent flex-grow" aria-hidden="true"></span>
       </h2>
 
-    {{/* Card settings now match the /posts/ list (fix #29): the token hairline, the accent hover
-         and the same transition, so a series card and a post card read alike in both modes.
-         `overflow-hidden` is deliberately not carried over — it is there for the post card's
-         full-cover overlay and its rounded child panels, neither of which this card has. */}}
-    <a href="{{ .term.Page.RelPermalink }}" class="block bg-surface border border-line hover:border-accent-line rounded-lg shadow-sm hover:shadow-md transition duration-300 p-5 no-underline group">
-      <div class="flex items-baseline justify-between">
-        <span class="text-lg font-medium text-fg group-hover:text-accent transition-colors">{{ .term.Page.Title }}</span>
-        <span class="category-count-badge ml-2 bg-accent-soft text-accent px-2 py-0.5 text-xs rounded-full">{{ .term.Count }} {{ i18n "articles" | default "articles" }}</span>
+      <div class="ml-8 space-y-6">
+        {{ range where (sort $series "latest" "desc") "year" $year }}
+        {{/* Card settings match the /posts/ list (fix #29): the token hairline, the accent hover
+             and the same transition, so a series card and a post card read alike in both modes.
+             `overflow-hidden` is deliberately not carried over — it is there for the post card's
+             full-cover overlay and its rounded child panels, neither of which this card has. */}}
+        <a href="{{ .term.Page.RelPermalink }}" class="block bg-surface border border-line hover:border-accent-line rounded-lg shadow-sm hover:shadow-md transition duration-300 p-5 no-underline group">
+          <div class="flex items-baseline justify-between">
+            {{/* A real <h3> under the year's <h2> (#36): the series name is the heading of its
+                 own card, exactly as a post's title is on /posts/. */}}
+            <h3 class="m-0 text-lg font-medium text-fg group-hover:text-accent transition-colors">{{ .term.Page.Title }}</h3>
+            <span class="category-count-badge ml-2 bg-accent-soft text-accent px-2 py-0.5 text-xs rounded-full">{{ .term.Count }} {{ i18n "articles" | default "articles" }}</span>
+          </div>
+          <div class="text-fg-faint text-sm mt-1">
+            Published: {{ if eq .first.Unix .last.Unix }}{{ partial "format-date.html" .first }}{{ else }}{{ partial "format-date.html" .first }} – {{ partial "format-date.html" .last }}{{ end }}
+          </div>
+        </a>
+        {{ end }}
       </div>
-      <div class="text-fg-faint text-sm mt-1">
-        Published: {{ if eq $first.Unix $last.Unix }}{{ partial "format-date.html" $first }}{{ else }}{{ partial "format-date.html" $first }} – {{ partial "format-date.html" $last}}{{ end }}
-      </div>
-    </a>
+    </div>
     {{ else }}
     <p class="text-center text-fg-muted italic">{{ i18n "series_empty" | default "No series yet." }}</p>
     {{ end }}

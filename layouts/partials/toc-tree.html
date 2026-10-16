@@ -1,0 +1,76 @@
+{{- /*
+  One level of a table of contents built from a page's `.Fragments.Headings`, so a *list* template
+  can show another page's contents — currently the part cards on a series page, asked for as "on the
+  series page that shows the articles for that series [...] show the toc for that article in each
+  articles card", and then as "make the table of contents [...] non-interactive - a header with a
+  bulleted list of parts".
+
+  Call it with the heading slice and the URL the anchors belong to, inside the header or `<nav>` the
+  caller supplies:
+
+      <nav aria-label="…">{{ partial "toc-tree.html" (dict "headings" $page.Fragments.Headings "base" $page.RelPermalink) }}</nav>
+
+  Three deliberate differences from the article's own table of contents
+  (layouts/_default/single.html):
+
+  - **The markup is built here rather than by `.TableOfContents`.** Hugo's TOC emits `href="#id"`
+    fragments, which on a series page would look for headings that are not on that page at all;
+    getting them right would mean regex-rewriting generated HTML, which is exactly what the article
+    template has to do (and why it has to sanitise it too). `.Fragments` is the structured data
+    behind that TOC: the same ids the headings actually carry, which is what lets `base` be prefixed
+    without touching any HTML. `check:html` then verifies every one of these anchors exists in the
+    target page, which the bare `#id` form could never do.
+  - **No `id="TableOfContents"`.** Hugo's own id is what single.html renames to
+    `TableOfContents-side` for its second copy; here there is one of these per card, so an id would be
+    duplicated once per part and referenced by nothing.
+  - **A bulleted list, not the theme's `.toc-nav`.** `.toc-nav` styles its links as full-width blocks
+    with their own padding and hover fill — a chip list, which is right for the floating sidebar on a
+    wide article and wrong for a list sitting in a card. So the list carries `list-disc pl-5` itself
+    (Tailwind's preflight removes list markers from every `ul`, so `list-disc` is what puts them
+    back) and the nested `<ul>` below sits inside its `<li>`, which is what keeps a sub-heading
+    indented under its parent rather than flat beside it. The theme's scroll spy and hash-link scripts
+    both select `a[href^="#"]` only, so these absolute links are ignored by them and navigate
+    normally.
+
+  A heading slice with no entries renders nothing, which is what lets a caller use `{{ with }}` to
+  skip a part that has no headings.
+
+  Entry text is `.Title` through `safeHTML`, because `.Title` is the heading's *rendered HTML*, not its
+  text: `## … x32 & x64 …` arrives as `… x32 &amp; x64 …` and `## “Home Page”` as `&ldquo;Home Page&rdquo;`,
+  which plain `{{ .Title }}` escapes a second time and shows the reader a literal `&amp;` — the bug this
+  card shipped with for one build. That is exactly what Hugo's own `.TableOfContents` emits, so this is
+  the same contract the article template renders, and inline heading markup (`<code>`, `<em>`) stays
+  what the heading itself shows. It is author-owned content, the same trust `.TableOfContents` gets.
+  `htmlUnescape` would fix the entities too, but would print a heading's `<code>` as those five
+  characters rather than as code.
+
+  Entries with no id are *hoisted*, not dropped. Hugo's fragment tree is rooted at the configured
+  `tableOfContents.startLevel` (1, see hugo.toml), so a document whose headings all start at h2 —
+  which is every post on this site — arrives as a single synthetic root entry with no id and no
+  title, with the real headings as its children. Rendered as-is that root produced
+  `<a href="…/part1/#"></a>`: a link with no text, no target and no accessible name — one per card,
+  and an axe `link-name` violation — wrapping the whole contents. So the level is flattened first and
+  the real headings come out at the top of the list, which is what single.html's TOC does by deleting
+  the empty `<li>`s Hugo leaves behind. A real heading always carries a generated id, and this is the
+  only id-less entry the generator produces, so one pass is enough. */ -}}
+{{- $base := .base -}}
+{{- $headings := slice -}}
+{{- range .headings -}}
+  {{- if .ID -}}
+    {{- $headings = $headings | append . -}}
+  {{- else -}}
+    {{- range .Headings -}}{{- $headings = $headings | append . -}}{{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- with $headings -}}
+<ul class="toc-list list-disc pl-5 space-y-1">
+  {{- range . -}}
+  <li>
+    <a href="{{ $base }}#{{ .ID }}" class="hover:text-accent transition-colors">{{ .Title | safeHTML }}</a>
+    {{- with .Headings -}}
+    {{ partial "toc-tree.html" (dict "headings" . "base" $base) }}
+    {{- end -}}
+  </li>
+  {{- end -}}
+</ul>
+{{- end -}}

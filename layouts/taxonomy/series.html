@@ -39,6 +39,7 @@
             {{/* Colour comes from .series-index in assets/css/site.css: it was text-green-200
                  (mint, and only 1.4:1 on a white card) with a text-green-400 hover. */}}
             <div class="series-index w-8 shrink-0 text-2xl font-bold transition-colors">{{ index $numbers .RelPermalink }}</div>
+            {{ $part := . }}
             <div class="min-w-0">
               <h3 class="text-xl font-medium text-fg group-hover:text-accent transition-colors">{{ .Title }}</h3>
               {{/* Was a bare `2006-01-02`, the last raw ISO date on the site while every other list
@@ -46,6 +47,33 @@
                    so it now matches /posts/, which prints the full date under its year badge too. */}}
               <time class="text-sm text-fg-faint" datetime="{{ .Date.Format "2006-01-02" }}">{{ partial "format-date.html" .Date }}</time>
               {{ with partial "summary.html" . }}<p class="text-fg-muted text-sm mt-2 line-clamp-2">{{ . }}</p>{{ end }}
+
+              {{/* The part's contents, from `.Fragments` — see partials/toc-tree.html for why it is
+                   assembled here rather than taken from `.TableOfContents`, and why the hrefs carry
+                   this part's URL.
+
+                   Static, as asked for on 2026-10-16: "make the table of contents [...]
+                   non-interactive - a header with a bulleted list of parts". It was a folded
+                   <details> for one build, which put the outline of every part behind a click and
+                   left the page reading as a row of buttons; the header and the list are always on
+                   screen now, and the only thing clickable is a part's heading. The header borrows
+                   the post page's sidebar-title styling (`text-xs font-semibold uppercase
+                   tracking-wide text-fg-faint`) so the two read as the same element. `toc-card` is
+                   this page's own name for the block, and the suite's hook for it.
+
+                   `relative z-20` is load-bearing and not decoration: the card's own full-cover
+                   link is an absolutely positioned `inset-0 z-10` sibling, so the entries have to
+                   outrank it or a click lands on the card instead — navigating to the same part but
+                   losing the `#fragment` the entry stands for. That is the trap the post card's
+                   chips are also written around. */}}
+              {{ with $part.Fragments.Headings }}
+              <div class="toc-card relative z-20 mt-4">
+                <div class="toc-card-title text-xs font-semibold uppercase tracking-wide text-fg-faint mb-2">{{ i18n "table_of_contents" }}</div>
+                <nav class="text-sm text-fg-2" aria-label="{{ i18n "table_of_contents" }}">
+                  {{ partial "toc-tree.html" (dict "headings" . "base" $part.RelPermalink) }}
+                </nav>
+              </div>
+              {{ end }}
             </div>
           </div>
         </li>
